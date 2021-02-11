@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <unistd.h>
 #include "living.h"
+#include "item.h"
 
 using namespace std;
 
@@ -23,6 +24,8 @@ int main(void){
   }
   cout << endl;
 
+
+
   cout << "Creating monsters.." << endl;
 
   Monster *monsters[3];
@@ -38,5 +41,34 @@ int main(void){
     cout << endl;
   }
   cout << endl;
+
+
+
+  cout << "Creating Items.." << endl;
+
+  Item *items[3];
+
+  items[0] = new Potion("Power", "Strength", 100, 2, 2);
+  cout << endl;
+  items[1] = new Armor("Draconic Leather", 100, 1000, 76);
+  cout << endl;
+  items[2] = new Weapon("Draconic Bow", 1000, 500, 76);
+  cout << endl;
+
+  for(int i = 0; i < 3; i++){
+    items[i]->print();
+    cout << endl;
+  }
+
+  for(int i = 0; i < 3; i++){
+
+    delete heroes[i];
+    cout << endl;
+    delete monsters[i];
+    cout << endl;
+    delete items[i];
+    cout << endl;
+
+  }
 
 }
