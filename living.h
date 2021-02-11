@@ -1,43 +1,124 @@
 #include <cstring>
 #include <iostream>
+#include <utility> 
 
 /* Base class for all livings in game,
    heroes and monsters               */
 class Living{
 
-    protected: 
+    private: 
         std::string name;
         int level;
-        int hp;      //Health Power
+        int maxHp;      //Health Power
+        int hp;
     
     public:
-        Living(std::string name)
-        { this->name = name; level = 1; hp = 1000; }
+        /* Constructor - Destructor */
+        Living(std::string name);
+        virtual ~Living() = 0;
+
+
+        /* Virtual functions*/
+        virtual void print(void) const = 0;
+
+
+        /* Inline functions */
+        inline std::string getName(void) const { return this->name; }
+
+        inline int getLevel(void) const { return this->level; }
+
+        inline int getMaxHp(void) const { return this->maxHp; }
+
+        inline int getHp(void) const { return this->hp; }
+
+        inline void addHp(int points) //hp shouldn't be greater than maxHp
+        { this->hp = ((hp + points) > maxHp)? maxHp : (hp + points); }
+
+        inline void subHp(int points) //hp shouldn't be less than 0
+        { this->hp = ((hp - points) < 0)? 0 : (hp - points); }
+
+        inline void addMaxHp(int points) { this->maxHp += maxHp; }
+
+        inline void addLevel(int levels) { this->level += levels; }
 
 };
 
 
 /* Heroes and their classes */
 class Hero : public Living{
-    
-    protected: //?Maybe protected
-        int mp;        //Magic Power
-        int strength;  //Adds when attack.
-        int dexterity; //Adds damage to a spell.
-        int agility;   //Change to dodge an attack.
+    //* A hero should:
+    // have inventory
+    // Wear armor 
+    // Hold weapon
+    private: //?Maybe protected
+        
+        struct Stats 
+        {
+            int str; //Strength, adds damage in attacks
+            int dex; //Dexterity, adds damage to a spell.
+            int agi; //agility, chance to dodge an attack.
+        }
+        base,        //Stats without modifiers: such a potion.
+        current;     //Modified stats. Usually temporary.
+
+        int mp;      //Magic Power
+        int maxMp;
+
         int money;
         int experience;
 
     public:
+        /* Constructor - Destructor */
         Hero(std::string name);
-        
-        void print();
-        //* A hero should:
-        // have inventory
-        // Wear armor 
-        // Hold weapon
+        virtual ~Hero() = 0;
 
-        void levelUp(void);
+
+        /* Override functions */
+        void print(void) const override;
+
+
+        /* Inline functions */        
+        inline int getBaseStr(void){ return this->base.str; }
+        inline int getBaseDex(void){ return this->base.dex; }   
+        inline int getBaseAgi(void){ return this->base.agi; }       
+
+        inline int getStr(void){ return this->current.str; }
+        inline int getDex(void){ return this->current.dex; }  
+        inline int getAgi(void){ return this->current.agi; }   
+
+        inline int getMoney(void){ return this->money; }     
+        inline int getExp(void){ return this->experience; }
+
+        inline int getMp(void){ return this->mp; }
+        inline int getMaxMp(void){ return this->maxMp; }     
+
+        inline void addStats(int str, int dex, int agi){ 
+          this->current.str += str; 
+          this->current.dex += dex; 
+          this->current.agi += agi;
+        }
+        inline void addBaseStats(int str, int dex, int agi){ 
+          this->base.str += str; 
+          this->base.dex += dex; 
+          this->base.agi += agi;
+        }
+
+        inline void addMp(int points) //mp shouldn't be grater than maxHp
+        {this->mp= ((this->mp + points) > maxMp)? maxMp : (this->mp + points);}
+        inline void addExp(int points){ this->experience += points; }
+        inline void addMoney(int money){ this->money+= money; }
+
+        inline void subStats(int str, int dex, int agi){
+          this->current.str -= str; 
+          this->current.dex -= dex; 
+          this->current.agi -= agi;
+        }
+        inline void subMp(int points) //mp shouldn't be less than 0
+        { this->mp = ((this->mp  - points) < 0)? 0 : (this->mp  - points); }
+        //?No need atm
+        //inline void subExp(int points){ this->experience -= points; }
+        inline void subMoney(int money){ this->money-= money; }
+
         //todo:
         //attack
         //use spell
@@ -51,6 +132,7 @@ class Warrior : public Hero{
     // + agility
     public:
         Warrior(std::string name);
+        ~Warrior();
 };
 
 class Sorcerer : public Hero{
@@ -59,6 +141,7 @@ class Sorcerer : public Hero{
     // + agility
     public:
         Sorcerer(std::string name);
+        ~Sorcerer();
 };
 
 class Paladin : public Hero{
@@ -67,22 +150,65 @@ class Paladin : public Hero{
     // + dexterity
     public:
         Paladin(std::string name);
+        ~Paladin();
 };
 
 
 /* Monsters and their types */
 class Monster : public Living{
 
-    protected:
-    //?Temporary type.
-        struct dmg{ int lb, ub; }dmg;   //Damage range 
-        int defence;              
-        int dodge;
-    
-    public:
-        Monster(std::string name);
-        void print();
+    private:
 
+        struct dmg{ //Damage range 
+            int lb; //Lower bound
+            int ub; //Upper bound
+        }
+        baseDmg,      //Stats without modifiers: such a debuff from spell.
+        currentDmg;   //Modified damage. Usually temporary.
+           
+        struct Stats 
+        {
+            int defence; 
+            int dodge; 
+        }
+        base,        
+        current;     
+
+    public:
+        /* Constructor - Destructor */
+        Monster(std::string name);
+        virtual ~Monster() = 0;
+
+        /* Override functions */
+        void print(void) const override;
+
+
+        /* Inline functions */
+        inline void addBaseDmg(int damage)
+        {
+            this->baseDmg.lb += damage;
+            this->baseDmg.ub += damage;
+        }
+        inline void addDmg(int damage)
+        {
+            this->currentDmg.lb += damage;
+            this->currentDmg.ub += damage;
+        }
+
+        inline void addStats(int defence, int dodge)
+        { 
+          this->current.defence += defence; 
+          this->current.dodge += dodge; 
+        }
+        inline void addBaseStats(int defence, int dodge)
+        { 
+          this->base.defence += defence; 
+          this->base.dodge += dodge; 
+        }
+        /*inline void getBaseDmg(int &lb, int &ub)
+        { lb = this->currentDmg.lb; ub = this->currentDmg.ub; }
+        inline void getDmg(int &lb, int &ub)
+        { lb = this->currentDmg.lb; ub = this->currentDmg.ub; }*/
 };
 
 class Dragon : public Monster{
@@ -90,6 +216,8 @@ class Dragon : public Monster{
     // + dmg
     public:
         Dragon(std::string name);
+        ~Dragon();
+
 };
 
 class Exoskeleton : public Monster{
@@ -97,6 +225,7 @@ class Exoskeleton : public Monster{
     // + armor
     public:
         Exoskeleton(std::string name);
+        ~Exoskeleton();
 };
 
 class Spirit : public Monster{
@@ -104,4 +233,5 @@ class Spirit : public Monster{
     // + dodge
     public:
         Spirit(std::string name);
+        ~Spirit();
 };
