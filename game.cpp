@@ -3,11 +3,13 @@
 #include <unistd.h>
 #include "living.h"
 #include "item.h"
+#include "grid.h"
 
 using namespace std;
 
 int main(void){
 
+  //*Debug: Hero
   cout << "Creating heroes.." << endl;
 
   Hero *heroes[3];
@@ -25,7 +27,7 @@ int main(void){
   cout << endl;
 
 
-
+  //*Debug: Monster
   cout << "Creating monsters.." << endl;
 
   Monster *monsters[3];
@@ -43,7 +45,7 @@ int main(void){
   cout << endl;
 
 
-
+  //*Debug: Item
   cout << "Creating Items.." << endl;
 
   Item *items[3];
@@ -55,10 +57,39 @@ int main(void){
   items[2] = new Weapon("Draconic Bow", 1000, 500, 76);
   cout << endl;
 
+  cout << "Creating a Grid.." << endl;
+
+
+  //*Debug: Grid
+  Grid *grid = new Grid();
+
+  cout << endl;
+  grid->displayMap();
+
   for(int i = 0; i < 3; i++){
     items[i]->print();
     cout << endl;
   }
+
+  char input = ' ';
+  char direction[4] = {'w', 's', 'a', 'd'};
+  bool validLoc;
+  while(input != 'x'){
+    validLoc = false;
+    cout << "Where do you want to go? w = up, s = down, a = left, d = right" << endl;
+    cin >> input; // Get user input from the keyboard
+    for(int i = 0; i < 4; i++){
+      if(input == direction[i]){
+        validLoc = grid->move(direction[i]);
+        grid->displayMap();
+      }
+    }
+    if(validLoc == false){
+      cout << "Oops couldn't move there.." << endl;
+    }
+  }
+
+
 
   for(int i = 0; i < 3; i++){
 
