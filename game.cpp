@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
+#include <typeinfo>
 #include "living.h"
 #include "item.h"
 #include "grid.h"
@@ -50,15 +51,50 @@ int main(void){
 
   Item *items[3];
 
-  items[0] = new Potion("Power", "Strength", 100, 2, 2);
+  items[0] = new Potion("Power", Hero::strength, 100, 2, 1);
   cout << endl;
-  items[1] = new Armor("Draconic Leather", 100, 1000, 76);
+  items[1] = new Armor("Draconic Leather", 100, 1000, 1);
   cout << endl;
-  items[2] = new Weapon("Draconic Bow", 1000, 500, 76);
+  items[2] = new Weapon("Draconic Bow", 1000, 500, 1);
   cout << endl;
+
+
+  //*Debug: Inventory
+
+  for(int i = 0; i < 3; i++){
+    cout << "Round " << i << endl;
+
+    if(heroes[0]->inventoryAdd(items[i]) == Hero::succeed)
+      cout << "Item added succesfuly in inventory!" << endl;
+    else cout << "Error adding item : "<< items[i]->getName() << endl;
+
+    heroes[0]->checkInventory();
+    int result;
+
+    cout << endl;
+    cout << "Trying to equip item: " << endl;
+    cout << "result is " << Hero::statusMsg[heroes[0]->equip(1)] << endl;
+    cout << endl;
+    
+    cout << "Trying to equip item: " << endl;
+    cout << "result is " << Hero::statusMsg[heroes[0]->equip(0)] << endl;
+    cout << endl;
+    
+    cout << "Trying to use potion: " << endl;
+    result = heroes[0]->usePotion(0);
+
+    cout << "result is " << Hero::statusMsg[result] << endl;
+    cout << endl;
+    cout << endl;
+
+  }
+
+  heroes[0]->print();
+
+  return 0;
+
 
   cout << "Creating a Grid.." << endl;
-
 
   //*Debug: Grid
   Grid *grid = new Grid();
@@ -74,10 +110,12 @@ int main(void){
   char input = ' ';
   char direction[4] = {'w', 's', 'a', 'd'};
   bool validLoc;
-  while(input != 'x'){
+  while(1){
     validLoc = false;
     cout << "Where do you want to go? w = up, s = down, a = left, d = right" << endl;
+    cout << "Or type 'x' for exit." << endl;
     cin >> input; // Get user input from the keyboard
+    if(input == 'x')break;
     for(int i = 0; i < 4; i++){
       if(input == direction[i]){
         validLoc = grid->move(direction[i]);

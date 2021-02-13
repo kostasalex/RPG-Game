@@ -4,6 +4,9 @@ using namespace std;
 
 /* Base class *Living* implementation*/
 
+string Hero::statsMsg[3] = {"strength", "dexterity", "agility"};
+string Hero::statusMsg[4] = {"succeed", "notFound", "higherLevel", "wrongType"};
+
 Living::Living(string name)
 { 
     //*Debug
@@ -29,8 +32,18 @@ Hero::Hero(string name) : Living(name){
     this->current = this->base = {10,10,10};
 
     maxMp = mp = 500;
-    money = 1000;
     experience = 0;
+    
+    int damage = 120, price = 10, requiredLvl = 1;
+    Weapon *weapon = new Weapon("Wooden Sword", damage, price, requiredLvl);
+
+    int defence = 15; price = 20;
+    Armor *armor = new Armor("Wooden Armor", defence, price, requiredLvl);
+
+    int money = 100;
+    this->inventory = new Inventory(weapon, armor, money);
+
+
 }
 
 Hero::~Hero(){
@@ -38,16 +51,94 @@ Hero::~Hero(){
     cout << "A Hero to be destroyed" << endl; 
 }
 
+
+void Hero::checkInventory(void) const{
+    this->inventory->print();
+} 
+
+
+int Hero::inventoryAdd(Item *item){
+    return this->inventory->addItem(item);
+}
+
+
+
+int Hero::equip(int inventorySlot){
+
+    int result;
+    
+    Item *item = inventory->getItem(inventorySlot);
+    if(item == nullptr) return notFound;
+
+
+    if(item->getType() == Item::weapon){
+        if(item->getLevel() > this->getLevel())result = higherLevel;
+        else result = this->inventory->equipWeapon((Weapon*)item);
+    }
+    else if(item->getType() == Item::armor){
+        if(item->getLevel() > this->getLevel())result = higherLevel;
+        else result = this->inventory->equipArmor((Armor*)item);
+    }
+    else return wrongType;
+    
+    if(result == succeed)inventory->popItem(inventorySlot);
+
+    return result;
+}
+
+
+
+int Hero::usePotion(int inventorySlot){
+    int result = -1;
+    
+    Item *item = inventory->getItem(inventorySlot);
+    if(item == nullptr) return notFound;
+
+    /* Check if item is weapon */
+
+    if(item->getType() == Item::potion){
+        if(item->getLevel() > this->getLevel())result = higherLevel;
+        else result = succeed;
+    }
+    else return wrongType;
+    
+    if(result == succeed){
+        inventory->popItem(inventorySlot);
+        Potion* potion = (Potion*)item;
+        int points = potion->getPoints();
+
+        switch(potion->getStat()){
+            case strength:
+                this->addStats(points, 0, 0);
+                break;
+            case dexterity:
+                this->addStats(0, points, 0); 
+                break;
+            case agility:
+                this->addStats(0, 0, agility); 
+                break;
+        }
+        cout << "successfully restored " << potion->getPoints()
+             << " points of " << statsMsg[potion->getStat()] << endl;
+        //delete inventory->popItem(inventorySlot);
+    }
+
+    return result;
+
+}
+
+
 void Hero::print(void) const{
-    cout << "Hero " << getName() << "Level: "
-    << getLevel() << " has:" << endl
-    << "Experience: " << this->experience << endl
-    << "Life: " << getHp() << endl
-    << "Mana: " << this->mp << endl
-    << "Strength: " << this->current.str << endl
-    << "Dexterity: " << this->current.dex  << endl
-    << "Agility: "  << this->current.agi  << endl
-    << "Money: "  << money << endl;
+    cout << "||Hero <" << getName() << ">||" << endl
+    << "Level: "<< getLevel() << endl
+    << "Experience: " << this->experience << "/" << "100" << endl
+    << "Life: " << getHp() << "/" << getMaxHp() << endl
+    << "Mana: " << this->mp << "/" << this->maxMp << endl
+    << endl << "* Stats *" << endl
+    << ">> Strength: " << this->current.str << endl
+    << ">> Dexterity: " << this->current.dex  << endl
+    << ">> Agility: "  << this->current.agi  << endl << endl;
+    this->inventory->print();
 }
 
 
@@ -124,8 +215,11 @@ Monster::~Monster(){
 
 
 void Monster::print(void) const{
-    cout << "Monster " << getName() << "Level: "
-    << getLevel() << " has:" << endl
+    cout << "((Monster <" << getName() << ">))" << endl
+    << "Level: "<< getLevel() << endl
+    << "Life: " << getHp() << "/" << getMaxHp() << endl
+    << endl << "* Stats *" << endl
+
     << "Damage: " << this->currentDmg.lb << " - " 
     <<  this->currentDmg.ub << endl
     << "Defence: " << this->current.defence << endl

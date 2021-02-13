@@ -1,24 +1,31 @@
+#ifndef ITEM_H
+#define ITEM_H
+
 #include <cstring>
 #include <iostream>
+#include <vector>
+
 
 /* Base class for all item int game: 
    Potions, armors, weapons and spells*/
+
 class Item{
 
     private:
         std::string name;
+        int type;    
         int price;
         int requiredLevel; //Level needed in order to use
-    
+
     public:
+        enum itemTypes{weapon, armor, potion};
         /* Constructor - Destructor */
-        Item(std::string name, int price, int requiredLevel);
+        Item(std::string name, int price, int requiredLevel, int type);
         virtual ~Item() = 0;
 
 
         /* Virtual functions */
         virtual void print() const = 0;
-
 
         /* Inline functions */
         inline int getPrice(void) const { return this->price; }
@@ -27,6 +34,9 @@ class Item{
 
         inline std::string getName(void) const { return this->name; }       
 
+        inline int getType(void) const { return this->type; }  
+
+
 };
 
 
@@ -34,13 +44,13 @@ class Item{
 class Potion : public Item{
 
     private:
-        std::string stat;//Stat that will be affected
+        int stat;//Stat that will be affected
         int points;
 
     public:
         /* Constructor - Destructor */
-        Potion(std::string name, std::string stat,\
-        int price, int requiredLevel, int points);
+        Potion(std::string name, int stat,\
+        int price, int points, int requiredLevel);
         ~Potion();
 
         /* Override functions */
@@ -48,9 +58,11 @@ class Potion : public Item{
 
 
         /* Inline functions */
-        inline std::string getStat(void) { return stat; }
+        inline int getStat(void) { return this->stat; }
 
         inline void inscrease(int &stat){ stat += points; }
+
+        inline int getPoints(void){return this->points;}
 
 
 };
@@ -105,3 +117,49 @@ class Armor : public Item{
 
 
 };
+
+
+class Inventory{
+
+    private:
+        //Equipped items
+        Weapon *weapon;
+        Armor *armor;
+        int money;
+
+        std::vector<Item*> items;
+
+        void disarmWeapon(void);
+        void disarmArmor(void);
+
+        /* Return status when trying to equip item */
+        enum equip{succeed, notFound, higherLevel, wrongType};
+
+    public:
+
+        Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money);
+        ~Inventory();
+
+        void print(void) const;
+
+        /* Check if object is the valid type before use these functions */
+        int equipWeapon(Weapon *weapon);
+        int equipArmor(Armor *armor);
+        
+        Item* popItem(int inventorySlot);
+        Item *getItem(int inventorySlot);
+        int addItem(Item *item);
+
+        inline Weapon *getWeapon(void){return this->weapon;}
+        inline Armor *getArmor(void){return this->armor;}
+
+        inline void addMoney(int money){ this->money+= money; }
+        inline void subMoney(int money)
+        {this->money = ((this->money - money) < 0)? 0 : (this->money - money);}
+        
+        inline int getMoney(void){ return this->money; }
+
+        
+};
+
+#endif

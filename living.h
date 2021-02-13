@@ -1,6 +1,10 @@
 #include <cstring>
 #include <iostream>
 #include <utility> 
+#include <vector>
+#include "item.h"
+#include "spell.h"
+
 
 /* Base class for all livings in game,
    heroes and monsters               */
@@ -20,6 +24,10 @@ class Living{
 
         /* Virtual functions*/
         virtual void print(void) const = 0;
+
+        //!virtual int attack(void) const = 0; 
+
+        //!virtual int receiveDamage(int damage) = 0;
 
 
         /* Inline functions */
@@ -46,12 +54,8 @@ class Living{
 
 /* Heroes and their classes */
 class Hero : public Living{
-    //* A hero should:
-    // have inventory
-    // Wear armor 
-    // Hold weapon
-    private: //?Maybe protected
-        
+
+    private: 
         struct Stats 
         {
             int str; //Strength, adds damage in attacks
@@ -63,19 +67,46 @@ class Hero : public Living{
 
         int mp;      //Magic Power
         int maxMp;
-
-        int money;
         int experience;
 
+        Inventory *inventory;
+
+        std::vector<Spell*> spells;
+
+
     public:
+
+        /* Return status when trying to equip item or learning a spell */
+        enum equipLearn{succeed, notFound, higherLevel, wrongType};
+        static std::string statusMsg[4];
+        
+        enum stats{strength, dexterity, agility};
+        static std::string statsMsg[3];
+
         /* Constructor - Destructor */
         Hero(std::string name);
         virtual ~Hero() = 0;
 
+        //!int castSpell(int spellId) const;//!
+
+        //!int learnSpell(Spell *spell);//!
 
         /* Override functions */
-        void print(void) const override;
+        //!int attack(void) const override;
 
+        //!int receiveDamage(int damage);
+
+
+
+        void checkInventory(void) const;
+
+        int inventoryAdd(Item *item);
+
+        int equip(int inventorySlot);
+        int usePotion(int inventorySlot);
+
+
+        void print(void) const override;
 
         /* Inline functions */        
         inline int getBaseStr(void){ return this->base.str; }
@@ -86,7 +117,6 @@ class Hero : public Living{
         inline int getDex(void){ return this->current.dex; }  
         inline int getAgi(void){ return this->current.agi; }   
 
-        inline int getMoney(void){ return this->money; }     
         inline int getExp(void){ return this->experience; }
 
         inline int getMp(void){ return this->mp; }
@@ -106,7 +136,7 @@ class Hero : public Living{
         inline void addMp(int points) //mp shouldn't be grater than maxHp
         {this->mp= ((this->mp + points) > maxMp)? maxMp : (this->mp + points);}
         inline void addExp(int points){ this->experience += points; }
-        inline void addMoney(int money){ this->money+= money; }
+
 
         inline void subStats(int str, int dex, int agi){
           this->current.str -= str; 
@@ -115,14 +145,8 @@ class Hero : public Living{
         }
         inline void subMp(int points) //mp shouldn't be less than 0
         { this->mp = ((this->mp  - points) < 0)? 0 : (this->mp  - points); }
-        //?No need atm
-        //inline void subExp(int points){ this->experience -= points; }
-        inline void subMoney(int money){ this->money-= money; }
 
-        //todo:
-        //attack
-        //use spell
-        //defence
+
 
 };
 
@@ -179,8 +203,11 @@ class Monster : public Living{
         Monster(std::string name);
         virtual ~Monster() = 0;
 
+        
         /* Override functions */
         void print(void) const override;
+
+        //!int attack(void) const override;
 
 
         /* Inline functions */
