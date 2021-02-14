@@ -1,14 +1,17 @@
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
-#include <typeinfo>
+#include <time.h>    
 #include "living.h"
 #include "item.h"
 #include "grid.h"
+#include "spell.h"
 
 using namespace std;
 
 int main(void){
+
+  srand (time(NULL));
 
   //*Debug: Hero
   cout << "Creating heroes.." << endl;
@@ -59,6 +62,66 @@ int main(void){
   cout << endl;
 
 
+  //*Debug: Spell
+  cout << "creating spells.. " << endl;
+  int spellDmg = 100;
+  int mp = 50;
+  Spell *spells[3];
+  spells[0] = new IceSpell("Frost attack", spellDmg, 20, 100, 1, mp);
+  cout << endl;
+  spells[1] = new FireSpell("Inferno blast", spellDmg, 5, 100, 1, mp);
+  cout << endl;
+  spells[2] = new LightingSpell("Lighting bold", spellDmg, 5, 100, 1, mp);
+  cout << endl;
+
+  cout << "Printing spells " << endl;
+
+  for(int i = 0; i < 3; i++){
+    spells[i]->print();
+    cout << endl;
+  }
+
+  for(int i = 0; i < 3; i++){
+    heroes[i]->learnSpell(spells[i]);
+    cout << endl;
+  }
+
+
+  for(int i = 0; i < 3; i++){
+    heroes[i]->checkSpells();
+    cout << endl;
+  }
+  
+  cout << "Attacking with spells: "<< endl;
+
+  for(int i = 0; i < 3; i++){
+    heroes[i]->castSpell(0, monsters[i]);
+    
+    cout << endl;
+  }
+
+
+  //*Debug :Attacks
+
+  cout << "Simple attacks: "<< endl;
+
+  for(int i = 0; i < 3; i++){
+    heroes[i]->attack(monsters[i]);
+    cout << endl;
+  }
+  cout << endl;
+
+
+  cout << "Stats changed after compat: " << endl;
+  for(int i = 0; i < 3; i++){
+    monsters[i]->print();    
+    heroes[i]->print();  
+    cout << endl;
+  }
+  cout << endl;
+
+
+
   //*Debug: Inventory
 
   for(int i = 0; i < 3; i++){
@@ -91,8 +154,7 @@ int main(void){
 
   heroes[0]->print();
 
-  return 0;
-
+  cout << endl;
 
   cout << "Creating a Grid.." << endl;
 
@@ -137,7 +199,10 @@ int main(void){
     cout << endl;
     delete items[i];
     cout << endl;
+    delete spells[i];
+    cout << endl;
 
   }
+
 
 }

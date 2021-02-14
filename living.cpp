@@ -1,4 +1,8 @@
+#include <algorithm> //upper_bound
+#include <time.h>    
 #include "living.h"
+#include "spell.h"
+#include "item.h"
 
 using namespace std;
 
@@ -49,6 +53,123 @@ Hero::Hero(string name) : Living(name){
 Hero::~Hero(){
     //*Debug
     cout << "A Hero to be destroyed" << endl; 
+}
+
+
+bool Hero::learnSpell(Spell *spell){
+
+    if(this->getLevel() >= spell->getLvl()){
+        this->spells.push_back(spell);
+        cout << this->getName() << " successfully learned spell "
+        << spell->getName() << endl;
+        return true;
+    }
+    return false;
+}
+
+
+int Hero::castSpell(int spellId, Living *living) {
+
+
+    if(spellId < (int)this->spells.size()){
+        Spell* spell = spells[spellId];
+
+        if(spell->getMp() > this->mp){
+            cout << "Not enough mp!" << endl;
+            return -1;
+        }
+        else{
+            cout << this->getName() << " casting "
+                 << spell->getName() << " to " 
+                 << living->getName() << endl;
+
+            int targetStat, points, damage;
+            spell->cast(this->dexterity, targetStat, points, damage);
+
+            this->subMp(spell->getMp());
+
+            //If damage received cast debuff
+            if(living->receiveDamage(damage) != 0){
+                Monster *monster = (Monster*)living;
+                switch(targetStat){
+                    case Spell::damage:
+                        monster->subDmg(points);
+                        break;
+                    case Spell::defence:
+                        monster->subDef(points);
+                        break;
+                    case Spell::dodge:
+                        monster->subDodge(points);
+                        break;
+
+                }
+                cout << Spell::statMsg[targetStat] 
+                    << " descreased by " << points << endl;
+            }
+        }
+    }
+    else {
+        cout << "Spell not found!" << endl;
+        return notFound;
+    }
+    return succeed;
+}
+
+
+int Hero::attack(Living *living) const{
+
+    int totalDmg;
+
+    Weapon *weapon = this->inventory->getWeapon();
+    if(weapon == nullptr)totalDmg = 0;
+    else totalDmg = weapon->getDamage();
+
+    totalDmg +=(this->strength / 100.0) * totalDmg; 
+    cout << this->getName() << " attacks " <<
+        living->getName() << endl;
+    
+    living->receiveDamage(totalDmg);
+
+    return totalDmg;
+
+}
+
+
+
+int Hero::receiveDamage(int damage){
+
+    int damageDealt = damage;
+
+    if(damageDealt > 0){
+
+        if(rand()%100 > agility){
+            Armor *armor = this->inventory->getArmor();
+            if(armor != nullptr){
+                damageDealt -= (armor->getDefence() / 100.0) * damageDealt;
+                cout << this->getName() << " received " 
+                     << damageDealt << " damage!" <<  endl;
+                subHp(damageDealt);
+            }
+        }
+        else{
+            damageDealt = 0;
+            cout << this->getName() << " Evade attack!! " << endl;
+        } 
+    }
+    return damageDealt;
+
+}
+
+
+void Hero::checkSpells(void) const{
+    if(spells.size() > 0){
+        cout << "** Learned Spells ** " << endl;
+        for(int i = 0; i < (int)spells.size(); i++){
+            cout << i << ": " << spells[i]->getName();
+            cout << endl;
+        }
+    }
+    else cout << "No spell learned yet " << endl;
 }
 
 
@@ -138,7 +259,8 @@ void Hero::print(void) const{
     << ">> Strength: " << this->current.str << endl
     << ">> Dexterity: " << this->current.dex  << endl
     << ">> Agility: "  << this->current.agi  << endl << endl;
-    this->inventory->print();
+    this->checkInventory();
+    this->checkSpells();
 }
 
 
@@ -213,6 +335,45 @@ Monster::~Monster(){
     cout << "A monster to be destroyed " << endl;
 }
 
+
+int Monster::attack(Living *living) const{
+
+    int dmgRange = this->currentDmg.ub - this->currentDmg.lb;
+    int totalDmg = this->currentDmg.lb + rand() % dmgRange;
+
+
+    cout << this->getName() << " attacks " <<
+        living->getName() << endl;
+    
+    living->receiveDamage(totalDmg);
+
+    return totalDmg;
+
+}
+
+
+
+int Monster::receiveDamage(int damage){
+
+    int damageDealt = damage;
+
+    if(damageDealt > 0){
+
+        if(rand()%100 > current.dodge){
+            damageDealt -= (this->current.defence / 100.0) * damageDealt;
+            cout << this->getName() << " received " 
+                    << damageDealt << " damage!" <<  endl;
+            subHp(damageDealt);
+            
+        }
+        else{
+            damageDealt = 0;
+            cout << this->getName() << " Evade attack!! " << endl;
+        } 
+    }
+    return damageDealt;
+
+}
 
 void Monster::print(void) const{
     cout << "((Monster <" << getName() << ">))" << endl

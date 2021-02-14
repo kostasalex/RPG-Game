@@ -1,9 +1,10 @@
+#ifndef LIVING_H
+#define LIVING_H
+
 #include <cstring>
 #include <iostream>
 #include <utility> 
 #include <vector>
-#include "item.h"
-#include "spell.h"
 
 
 /* Base class for all livings in game,
@@ -25,9 +26,9 @@ class Living{
         /* Virtual functions*/
         virtual void print(void) const = 0;
 
-        //!virtual int attack(void) const = 0; 
+        virtual int attack(Living *living) const = 0; 
 
-        //!virtual int receiveDamage(int damage) = 0;
+        virtual int receiveDamage(int damage) = 0;
 
 
         /* Inline functions */
@@ -69,9 +70,9 @@ class Hero : public Living{
         int maxMp;
         int experience;
 
-        Inventory *inventory;
+        class Inventory *inventory;
 
-        std::vector<Spell*> spells;
+        std::vector<class Spell*> spells;
 
 
     public:
@@ -87,20 +88,20 @@ class Hero : public Living{
         Hero(std::string name);
         virtual ~Hero() = 0;
 
-        //!int castSpell(int spellId) const;//!
+        bool learnSpell(class Spell *spell);
 
-        //!int learnSpell(Spell *spell);//!
+        int castSpell(int spellId, Living *living);
 
         /* Override functions */
-        //!int attack(void) const override;
+        int attack(Living *living) const override;
 
-        //!int receiveDamage(int damage);
-
-
+        int receiveDamage(int damage);
+        
+        void checkSpells(void) const;
 
         void checkInventory(void) const;
 
-        int inventoryAdd(Item *item);
+        int inventoryAdd(class Item *item);
 
         int equip(int inventorySlot);
         int usePotion(int inventorySlot);
@@ -207,8 +208,9 @@ class Monster : public Living{
         /* Override functions */
         void print(void) const override;
 
-        //!int attack(void) const override;
+        int attack(Living *living) const override;
 
+        int receiveDamage(int damage) override;
 
         /* Inline functions */
         inline void addBaseDmg(int damage)
@@ -232,6 +234,21 @@ class Monster : public Living{
           this->base.defence += defence; 
           this->base.dodge += dodge; 
         }
+
+        inline void subDmg(int points){
+            currentDmg.lb -= points;
+            currentDmg.ub -= points;
+            if(currentDmg.lb < 0)currentDmg.lb = 0;
+            if(currentDmg.ub < 0)currentDmg.ub = 0;
+        }
+
+        inline void subDef(int points)
+        {current.defence = ((current.defence  - points) < 0)? 0 \
+                           : (current.defence  - points); }
+
+        inline void subDodge(int points)
+        {current.dodge = ((current.dodge  - points) < 0)? 0 \
+                           : (current.dodge  - points); }
         /*inline void getBaseDmg(int &lb, int &ub)
         { lb = this->currentDmg.lb; ub = this->currentDmg.ub; }
         inline void getDmg(int &lb, int &ub)
@@ -262,3 +279,5 @@ class Spirit : public Monster{
         Spirit(std::string name);
         ~Spirit();
 };
+
+#endif

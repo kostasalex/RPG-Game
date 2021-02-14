@@ -20,7 +20,7 @@ Item::Item(string name, int price, int requiredLevel, int type)
 Item::~Item ()
 {
     //*Debug
-    cout << "Item " << name << " to be destructed!!" << endl;
+    cout << "Item " << this->name << " to be destructed!!" << endl;
 }
 
 

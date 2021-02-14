@@ -1,3 +1,6 @@
+#ifndef SPELL_H
+#define SPELL_H
+
 #include <cstring>
 #include <iostream>
 
@@ -5,18 +8,50 @@ class Spell{
 
     private:
         std::string name;
-        int price;
         int requiredLevel;
-        
-    protected:
+        int mpCost;                   //Magical power needed
+        int pointsAffect;
+        int price;
         struct dmg{ int lb, ub; }dmg;   //Damage range 
-        int mpNeeded;                   //Magical power needed
+        static int ub_damage;           //Added to lb_damage
+        
+        /*struct TargetStat{
+            int stat, points;
+        }targetStat;
+    protected:
+        inline int debuff(int &stat){ }*/
 
     public:
-        Spell(std::string name, int defence, int price, int requiredLevel);
+        enum statAffect{damage, defence, dodge};
+        static std::string statMsg[3];
 
-        int virtual useSpell(int &mp, int &stat, int &hp) = 0;
+        Spell(std::string name, int lb_damage, int pointsAffect, \
+        int price, int requiredLevel, int mpCost);
 
+        virtual ~Spell() = 0;
+
+        void virtual cast(int dexterity, int &targetStat,\
+         int &points,  int &damage) = 0;
+
+        void virtual print(void) = 0;
+
+
+        inline int getMp(void) const {return this->mpCost;}
+
+        inline int getLvl(void) const {return this->requiredLevel;}
+
+        inline std::string getName(void) const {return this->name;}
+
+        inline int getLbDmg(void){return this->dmg.lb;}
+
+        inline int getUbDmg(void){return this->dmg.ub;}
+
+        inline int getPoints(void){return this->pointsAffect;}
+
+        inline int getPrice(void){return this->price;}
+        
+        inline int getDamage(int dexterity)
+        {return ((dmg.lb + dexterity) > dmg.ub)? dmg.ub : (dmg.lb + dexterity);}
 
 };
 
@@ -25,9 +60,16 @@ class Spell{
 class IceSpell : public Spell{
 
     public:
-        IceSpell(std::string name, int defence, int price, int requiredLevel);
+        IceSpell(std::string name, int lb_damage, int pointsAffect, \
+        int price, int requiredLevel, int mpCost);
 
-        int useSpell(int &mp, int &stat, int &hp);
+        ~IceSpell();
+
+        void cast(int dexterity, int &targetStat, \
+         int &points,  int &damage) override;
+
+        void print(void) override;
+
 
 
 };
@@ -37,9 +79,15 @@ class IceSpell : public Spell{
 class FireSpell : public Spell{
 
     public:
-        FireSpell(std::string name, int defence, int price, int requiredLevel);
+        FireSpell(std::string name, int lb_damage, int pointsAffect, \
+        int price, int requiredLevel, int mpCost);
+        
+        ~FireSpell();
 
-        int useSpell(int &mp, int &stat, int &hp);
+        void cast(int dexterity, int &targetStat,\
+         int &points,  int &damage)override;
+
+        void print(void) override;
 
 
 };
@@ -49,9 +97,16 @@ class FireSpell : public Spell{
 class LightingSpell : public Spell{
 
     public:
-        LightingSpell(std::string name, int defence, int price, int requiredLevel);
+        LightingSpell(std::string name, int lb_damage, int pointsAffect, \
+        int price, int requiredLevel, int mpCost);
 
-        int useSpell(int &mp, int &stat, int &hp);
+        ~LightingSpell();
+
+        void cast(int dexterity, int &targetStat,\
+         int &points,  int &damage) override;
+
+        void print(void) override;
 
 
 };
+#endif
