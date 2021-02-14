@@ -1,10 +1,158 @@
 #include <iostream>
 #include <cstdlib>
+#include <unistd.h>
 #include "game.h"
 
 using namespace std;
 
 string Market::type[3] = {"weapon", "armor", "spell"};
+
+Game::Game(){
+  
+  this->gameState = peace;
+
+  cout << "Rpg game started!!" << endl;
+  
+  int heroesNo = 3;
+  cout << "You can create " << heroesNo << " heroes maximum" << endl;
+  
+  int choice;
+  string name;
+  Hero *hero;
+
+  this->heroesNum = 0;
+
+  while(heroesNum < 3){
+
+    if(heroesNum > 0){
+      cout << "1. Create another hero" << endl
+           << "0. Exit creation." << endl;
+      cin >> choice;
+      if(choice == 0)break;
+    }
+
+    cout << "Select a class : " << endl
+         << "1.Warrior"  << endl
+         << "2.Paladin"  << endl
+         << "3.Sorcerer" << endl;
+
+    cin >> choice;
+    if(choice < 1 || choice > 3){
+      cout << "Invalid number!"<< endl;
+      continue;
+    }
+    
+    cout << "Enter name: " << endl;
+    cin >> name;
+
+    switch(choice){
+      case 1:
+        hero = new Warrior(name);
+        break;
+      
+      case 2:
+        hero = new Paladin(name);
+        break;
+
+      case 3:
+        hero = new Sorcerer(name);
+        break;
+    }
+    this->heroes.push_back(hero);
+    this->heroesNum++;
+  }
+
+  cout << this->heroesNum <<" Heroes created: " << endl << endl;
+  for(int i = 0; i < heroesNum; i++){
+    this->heroes[i]->print();
+    cout << endl;
+  }
+
+  this->market = new Market();
+
+  this->grid = new Grid();
+
+}
+
+
+void Game::play(){
+  
+  system("clear");
+
+  char input = ' ';
+  char direction[4] = {'w', 's', 'a', 'd'};
+  bool validLoc;
+
+  grid->displayMap();
+
+  int state;
+  while(1){
+
+    validLoc = false;
+
+    cout << "Where do you want to go? w = up, s = down, a = left, d = right" << endl;
+    cout << "Or type 'x' for exit." << endl;
+    cin >> input; // Get user input from the keyboard
+
+    if(input == 'x')break;
+
+    for(int i = 0; i < 4; i++){
+      if(input == direction[i]){
+        validLoc = grid->move(direction[i]);
+        break;
+      }
+    }
+    if(validLoc == false){
+      cout << "Oops couldn't move there.." << endl;
+      sleep(1);
+    }
+    else{
+      
+      grid->displayMap();
+      setGameState(grid->getBlockType());
+      state = getGameState();
+      cout << "** " << state <<" **" << endl;
+      switch(state){
+        case trading:
+          this->shop();
+          break;
+        case fighting:
+          this->combat();
+          break;
+      }
+    }
+    //system("clear");
+  }
+
+}
+
+
+void Game::shop(){
+  cout << "enter shop mode" << endl;
+}
+
+
+void Game::combat(){
+  cout << "enter combat mode" << endl;
+}
+
+
+void Game::setGameState(int blockType){
+  cout << "Blocktype: " << blockType << endl;
+  switch(blockType){
+
+    case Grid::common:
+      if(rand()%3 == 0)this->gameState = this->fighting;
+      else this->gameState = this->peace;
+      break;
+
+    case Grid::market:
+      this->gameState = this->trading;
+      break;
+  }
+}
+
+
 
 Market::Market(){
   /* Create different type of weapons */

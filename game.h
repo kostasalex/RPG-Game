@@ -6,22 +6,33 @@
 class Game{
   
   private:
+        int heroesNum;
         std::vector<Hero*> heroes;
-        std::vector<class Market*> markets;
+
+        int monstersNum;
         Monster **monsters;
+
+        class Market *market;
+        //std::vector<class Market*> markets;
+
+
         Grid *grid;
 
         int gameState;
 
         void combat(void);
         void shop(void);
-        void menu(void);
-        void display(void);
-        void exit(void);
+        //!void menu(void);
+        //!void display(void);
+        //!void exit(void);
+        void setGameState(int blockType);
+
+        enum state{peace, trading, fighting};
+        inline int getGameState(void){ return this->gameState; }
 
     public:
         Game();
-        ~Game();
+        //~Game();
 
         void play(void);
         

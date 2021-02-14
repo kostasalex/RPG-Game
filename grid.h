@@ -23,7 +23,7 @@ class Grid{
         void displayMap(void) const;
 
         inline int getBlockType(void)
-        { return this->grid[heroesLoc.x][heroesLoc.y]; }
+        { return this->grid[heroesLoc.x][heroesLoc.y] - heroes; }
 
 
 };
