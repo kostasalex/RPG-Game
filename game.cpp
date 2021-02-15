@@ -5,16 +5,14 @@
 
 using namespace std;
 
-string Market::type[3] = {"weapon", "armor", "spell"};
+string Market::productType[3] = {"weapon", "armor", "spell"};
 
 Game::Game(){
   
   this->gameState = peace;
 
   cout << "Rpg game started!!" << endl;
-  
-  int heroesNo = 3;
-  cout << "You can create " << heroesNo << " heroes maximum" << endl;
+  cout << "You can create " << maxHeroes << " heroes maximum" << endl;
   
   int select;
   string name;
@@ -22,7 +20,7 @@ Game::Game(){
 
   this->heroesNum = 0;
 
-  while(heroesNum < 3){
+  while(heroesNum < maxHeroes){
 
     if(heroesNum > 0){
       cout << "1. Create another hero" << endl
@@ -55,6 +53,11 @@ Game::Game(){
     switch(select){
       case 1:
         hero = new Warrior(name);
+
+        //*debug
+        this->heroes.push_back(hero);
+        this->heroesNum++;
+        hero = new Warrior("dvp");
         break;
       
       case 2:
@@ -78,28 +81,34 @@ Game::Game(){
   this->market = new Market();
 
   this->grid = new Grid();
-
 }
 
 
 void Game::play(){
   
-  system("clear");
 
   char input = ' ';
   char direction[4] = {'w', 's', 'a', 'd'};
   bool validLoc;
 
-  grid->displayMap();
-
-  int state;
   while(1){
 
 
     validLoc = false;
 
+    system("clear");
+
+    grid->displayMap();
+    //*debug
+    Hero *heroes[this->heroesNum];
+    for(int i = 0; i < this->heroesNum; i++){
+      heroes[i] = this->heroes[i];
+    }
+    this->combat = new Combat(heroes, heroesNum);
+    combat->fight();
+    return;
     cout << "Where do you want to go? w = up, s = down, a = left, d = right" << endl;
-    cout << "Or type 'x' for exit." << endl;
+    cout << "'x' for exit." << endl;
     cin >> input; // Get user input from the keyboard
 
     if(input == 'x')break;
@@ -116,16 +125,14 @@ void Game::play(){
     }
     else{
       
-      grid->displayMap();
       setGameState(grid->getBlockType());
-      state = getGameState();
-      cout << "** " << state <<" **" << endl;
-      switch(state){
+      cout << "** " << this->gameState <<" **" << endl;
+      switch(this->gameState){
         case trading:
           this->shop(heroes[0]);
           break;
         case fighting:
-          this->combat();
+          //this->combat();
           break;
       }
     }
@@ -180,7 +187,7 @@ void Game::shop(Hero *hero){
               
               if(select < 3 && select >= 0){
                 /* Select a product from the selected category */
-                productId = market->selectItem(select);
+                productId = market->selectProduct(select);
                 if(productId == -1)continue;
               }
 
@@ -214,11 +221,6 @@ void Game::shop(Hero *hero){
                 hero->addMoney(money - hero->getMoney());
               }
               hero->print();
-              /*cout << "0. Buy another " << Market::type[select]<< endl
-                    << "Any key to Go back" << endl;
-              cin >> select;
-              if(goBack == true)break;
-                cout << "money :" << money<< endl;*/
             }
             break;
           
@@ -254,9 +256,9 @@ void Game::shop(Hero *hero){
 }
 
 
-void Game::combat(){
+/*void Game::combat(){
   cout << "enter combat mode" << endl;
-}
+}*/
 
 
 void Game::setGameState(int blockType){
@@ -280,8 +282,8 @@ Market::Market(){
   /* Create different type of weapons */
   this->name = "Default Market";
 
-  this->itemsCounter[weapon] = 6;
-  this->weapons = new Weapon *[itemsCounter[weapon]];
+  this->productCounter[weapon] = 6;
+  this->weapons = new Weapon *[productCounter[weapon]];
 
   this->weapons[0] = new Weapon("Iron Slasher", 250, 200, 3);
   this->weapons[1] = new Weapon("Iron Sword", 200, 180, 3);
@@ -290,14 +292,14 @@ Market::Market(){
   this->weapons[4] = new Weapon("Silver Sword", 300, 450, 6);
   this->weapons[5] = new Weapon("Silver Staff", 280, 420, 6);
 
-  this->itemsCounter[armor] = 2;
-  this->armors = new Armor *[itemsCounter[armor]];
+  this->productCounter[armor] = 2;
+  this->armors = new Armor *[productCounter[armor]];
 
   this->armors[0] = new Armor("Iron armor", 25, 300, 3);
   this->armors[1] = new Armor("silver armor", 35, 700, 6);
 
-  this->itemsCounter[spell] = 3;
-  this->spells = new Spell *[itemsCounter[spell]];
+  this->productCounter[spell] = 3;
+  this->spells = new Spell *[productCounter[spell]];
   int spellDmg = 100;
   int mp = 50;
   spells[0] = new IceSpell("Frost attack", spellDmg, 20, 100, 1, mp);
@@ -312,9 +314,9 @@ Market::Market(){
 
 Market::~Market(){
 
-  for(int i = 0; i < this->itemsCounter[weapon]; i++)delete weapons[i];
-  for(int i = 0; i < this->itemsCounter[armor]; i++)delete armors[i];
-  for(int i = 0; i < this->itemsCounter[spell]; i++)delete spells[i];
+  for(int i = 0; i < this->productCounter[weapon]; i++)delete weapons[i];
+  for(int i = 0; i < this->productCounter[armor]; i++)delete armors[i];
+  for(int i = 0; i < this->productCounter[spell]; i++)delete spells[i];
 
   delete[] armors;
   delete[] weapons;
@@ -325,9 +327,9 @@ Market::~Market(){
 }
 
 
-int Market::selectItem(int type){
+int Market::selectProduct(int type){
   
-  cout << "Select " << this->type[type] << " :" << endl; 
+  cout << "Select " << this->productType[type] << " :" << endl; 
  
   int select; 
 
@@ -337,8 +339,8 @@ int Market::selectItem(int type){
 
     cin >> select;
 
-    if(select >= itemsCounter[type] || select < 0){
-      cout << this->type[type] << " " << select << " doesn't exist!"<< endl;
+    if(select >= productCounter[type] || select < 0){
+      cout << this->productType[type] << " " << select << " doesn't exist!"<< endl;
       cout << "1. Select again" << endl
            << "Any key to Go back "     << endl;
       cin >> select;
@@ -353,7 +355,7 @@ void Market::showItems(int type){
   
     switch(type){
       case weapon:
-        for(int i = 0; i < this->itemsCounter[weapon]; i++){
+        for(int i = 0; i < this->productCounter[weapon]; i++){
           cout << "______" << i << "______" << endl;
           weapons[i]->print(); 
           cout << endl;
@@ -361,7 +363,7 @@ void Market::showItems(int type){
         break;
 
       case armor:
-        for(int i = 0; i < this->itemsCounter[armor]; i++){
+        for(int i = 0; i < this->productCounter[armor]; i++){
           cout << "__" << i << "__" << endl;
           armors[i]->print(); 
           cout << endl;
@@ -369,7 +371,7 @@ void Market::showItems(int type){
         break;
 
       case spell:
-        for(int i = 0; i < this->itemsCounter[spell]; i++){
+        for(int i = 0; i < this->productCounter[spell]; i++){
           cout << "__" << i << "__" << endl;
           spells[i]->print(); 
           cout << endl;
@@ -400,10 +402,10 @@ Item* Market::sell(int type, int id, int &money, int heroLvl){
 
   switch(type){
     case this->weapon:
-      if(id < this->itemsCounter[this->weapon])item = weapons[id];
+      if(id < this->productCounter[this->weapon])item = weapons[id];
       break;
     case this->armor:
-      if(id < this->itemsCounter[this->armor])item = armors[id];
+      if(id < this->productCounter[this->armor])item = armors[id];
       break;
   }
 
@@ -411,7 +413,7 @@ Item* Market::sell(int type, int id, int &money, int heroLvl){
     if(money >= item->getPrice()){
       if(heroLvl >= item->getLevel()){
         money -= item->getPrice();
-        cout << this->type[type] << " " << 
+        cout << this->productType[type] << " " << 
         item->getName() << " successfully purchased!!" << endl;
         return item;
       }
@@ -430,7 +432,7 @@ Spell* Market::sell(int id, int &money, int heroLvl){
   
   Spell *spell = nullptr;
 
-  if(id < this->itemsCounter[this->spell])spell = spells[id];
+  if(id < this->productCounter[this->spell])spell = spells[id];
 
   if(spell != nullptr){
     if(money >= spell->getPrice()){
@@ -447,4 +449,271 @@ Spell* Market::sell(int id, int &money, int heroLvl){
   }
   
   return nullptr;
+}
+
+
+
+Combat::Combat(Hero **heroes, int heroesNum){
+
+    this->round = 0;
+
+    this->heroes = heroes;
+    this->heroesNum = heroesNum;
+
+    /*Create same number of monsters*/
+    this->monstersNum = heroesNum;
+    this->monsters = new Monster*[heroesNum];
+
+    for(int i = 0; i < this->monstersNum; i++){
+      //*Temporary just one type of monster
+      this->monsters[i] = new Dragon("Dragon" + to_string(i));
+    }
+    
+    cout << "A new combat is about to start ..!!" << endl;
+
+}
+
+Combat::~Combat(){
+
+    for(int i = 0; i < this->monstersNum; i++){
+      delete this->monsters[i];
+    }
+
+    delete[] this->monsters;
+}
+
+
+void Combat::fight(void){
+
+  while(isFightEnd() == false){
+    heroesTurn();
+    cout << endl;
+    monstersTurn();
+    cout << endl;
+    regeneration();
+    cout << endl;
+  }
+  cout << "Fight ended! " << endl;
+
+  for(int i = 0; i < heroesNum; i++){
+    heroes[i]->print();
+    cout << endl;
+  }
+  for(int i = 0; i < monstersNum; i++){
+    monsters[i]->print();
+    cout << endl;
+  }
+
+}
+
+
+void Combat::heroesTurn(void){
+  
+  int availableHeroes[this->heroesNum] = {};
+  
+  int select, heroIndex, monsterIndex, spellIndex; 
+  bool isAvailable, isAlive;
+
+  while(1){ //Menu 1
+    isAvailable = false;
+    isAlive = false;
+
+    /* Check if heroes are still available */
+    for(int i = 0; i < this->heroesNum; i++){
+      if(heroes[i]->getHp() != 0) isAlive = true;
+  
+      if(availableHeroes[i] == 0) isAvailable = true;
+    }
+
+
+    if(isAvailable == false || isAlive == false)return;
+
+    cout << "Select a hero " << endl;
+
+    for(int i = 0; i < this->heroesNum; i++){
+      if(availableHeroes[i])continue;
+      cout << i << " : " << heroes[i]->getName() << endl;
+    }
+
+    cin >> heroIndex;
+
+    if(heroIndex >= 0 && heroIndex < this->heroesNum){
+      if(heroes[heroIndex]->getHp() == 0){
+        cout << heroes[heroIndex]->getName() 
+             << " cant fight .. is Unconscious ..!" << endl;
+        continue;   //Select another hero
+      }
+      else{
+        if(availableHeroes[heroIndex]){
+          cout << heroes[heroIndex]->getName() <<" allready fought" << endl;
+          continue;
+        }
+      }
+    }
+    else continue; //Invalid input
+
+
+
+    while(1){ //>Menu 2
+      if(availableHeroes[heroIndex])break;
+      cout << "0. Check inventory " << endl
+          << "1. Select a monster to attack " << endl
+          << "2. Display " << heroes[heroIndex]->getName() << endl
+          << "3. Select another hero" << endl;
+
+      cin >> select;
+      if(select == 3)break;
+      if(select > 3 && select < 0){
+        cout << "Invalid selection!!" << endl;
+        continue;
+      }
+
+      if(select == 0){
+        heroes[heroIndex]->checkInventory();
+        cout << endl;
+      }
+      else if(select == 1){
+        
+        while(1){ //>>Menu 3
+          if(availableHeroes[heroIndex])break;
+          cout << "Select a monster " << endl;
+
+          for(int i = 0; i < this->monstersNum; i++)
+            cout << i << " : " << monsters[i]->getName() << endl;
+
+          cin >> monsterIndex;
+
+          if(monsterIndex < 0 || monsterIndex >= this->monstersNum){
+            cout << "Invalid selection!!" << endl;
+            continue;
+          }
+
+          if(monsters[monsterIndex]->getHp() == 0){
+            cout << monsters[monsterIndex]->getName() 
+                << " cant fight back .. is Unconscious ..!" << endl;
+          } 
+          while(1){
+            if(availableHeroes[heroIndex])break;
+
+            cout << "1. Attack" << endl
+                 << "2. Cast Spell" << endl
+                 << "3. Go back" << endl;
+
+            cin >> select;
+
+            if(select == 3)break;
+
+            if(select > 2 && select < 0){
+              cout << "Invalid selection!!" << endl;
+              continue;
+            }
+            if(select == 1)heroes[heroIndex]->attack(monsters[monsterIndex]);
+            else if(select == 2){
+              
+              cout << "Select spell" << endl;
+              heroes[heroIndex]->checkSpells();
+              cin >> spellIndex;
+
+              if(heroes[heroIndex]->castSpell(spellIndex, monsters[monsterIndex])\
+               != Hero::succeed)continue;
+            }
+
+            availableHeroes[heroIndex]++;
+          }//>>Menu 3
+
+        }
+
+      }
+      else if(select == 2){
+        heroes[heroIndex]->print();
+        cout << endl;
+      }
+
+    }//>Menu 2
+
+  }//>Menu 1
+
+}
+
+
+void Combat::monstersTurn(void){
+
+  int target;
+
+  for(int i = 0; i < this->monstersNum; i++){
+
+    if(monsters[i]->getHp() == 0)continue;
+
+    target = getRandTarget();
+    
+    cout << this->monsters[i]->getName()
+         << " targeted " << this->heroes[target]->getName() << endl;
+
+    this->monsters[i]->attack(heroes[target]);
+  }
+
+  this->round++;
+}
+
+
+int Combat::getRandTarget(void){
+  int target;
+  //*debug
+  cout << "Monster selecting a target.." << endl;
+  while(1){
+    target = rand()%this->heroesNum;
+    if(this->heroes[target]->getHp() != 0)break;
+  }
+  return target;
+}
+
+
+void Combat::regeneration(){
+
+  double regenRate = 0.05;
+
+  for(int i = 0; i < this->heroesNum; i++){
+    if(this->heroes[i]->getHp() != 0){
+      cout << heroes[i]->getName() << " hp: "
+           << this->heroes[i]->getHp() << "-->";
+
+      heroes[i]->addHp(this->heroes[i]->getHp()*regenRate);
+      cout << this->heroes[i]->getHp() << endl;
+    }
+  }
+
+  for(int i = 0; i < this->monstersNum; i++){
+    if(this->monsters[i]->getHp() != 0){
+      cout << monsters[i]->getName() << " hp: "
+           << this->monsters[i]->getHp() << "-->";
+
+      monsters[i]->addHp(this->monsters[i]->getHp()*regenRate);
+      cout << this->monsters[i]->getHp() << endl;
+    }
+  }
+
+}
+
+
+bool Combat::isFightEnd(){
+
+  bool monstersDead = true;
+  bool heroesDead = true;
+
+  for(int i = 0; i < this->heroesNum; i++){
+    if(this->heroes[i]->getHp() != 0){
+      heroesDead = false;
+      break;
+    }
+  }
+
+  for(int i = 0; i < this->monstersNum; i++){
+    if(this->monsters[i]->getHp() != 0){
+      monstersDead = false;
+      break;
+    }
+  }
+
+  return (monstersDead || heroesDead);
+
 }
