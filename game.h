@@ -21,7 +21,7 @@ class Game{
         int gameState;
 
         void combat(void);
-        void shop(void);
+        void shop(Hero *hero);
         //!void menu(void);
         //!void display(void);
         //!void exit(void);
@@ -52,7 +52,9 @@ class Market{
 
         Spell **spells;
         
-        int weaponsNum, armorsNum, spellsNum;
+        int itemsCounter[3];
+        
+        void showItems(int type);
 
     public:
         enum type{weapon , armor, spell};
@@ -60,6 +62,9 @@ class Market{
 
         Market();
         ~Market();
+        
+        /* Returns -1 if nothing is selected */
+        int selectItem(int type); 
 
         bool buy(Item *item, int &money);
 

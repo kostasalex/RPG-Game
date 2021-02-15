@@ -2,7 +2,6 @@
 #include <time.h>    
 #include "living.h"
 #include "spell.h"
-#include "item.h"
 
 using namespace std;
 
@@ -16,7 +15,7 @@ Living::Living(string name)
     //*Debug
     cout << "Creating a Living..!" << endl;
     this->name = name;
-    this->level = 1;
+    this->level = 3;
     this->hp = this->maxHp = 1000; 
 }
 
@@ -44,7 +43,7 @@ Hero::Hero(string name) : Living(name){
     int defence = 15; price = 20;
     Armor *armor = new Armor("Wooden Armor", defence, price, requiredLvl);
 
-    int money = 100;
+    int money = 200;
     this->inventory = new Inventory(weapon, armor, money);
 
 

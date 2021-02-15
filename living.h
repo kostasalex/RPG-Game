@@ -5,6 +5,7 @@
 #include <iostream>
 #include <utility> 
 #include <vector>
+#include "item.h"
 
 
 /* Base class for all livings in game,
@@ -70,7 +71,7 @@ class Hero : public Living{
         int maxMp;
         int experience;
 
-        class Inventory *inventory;
+        Inventory *inventory;
 
         std::vector<class Spell*> spells;
 
@@ -101,7 +102,7 @@ class Hero : public Living{
 
         void checkInventory(void) const;
 
-        int inventoryAdd(class Item *item);
+        int inventoryAdd(Item *item);
 
         int equip(int inventorySlot);
         int usePotion(int inventorySlot);
@@ -119,6 +120,10 @@ class Hero : public Living{
         inline int getAgi(void){ return this->current.agi; }   
 
         inline int getExp(void){ return this->experience; }
+        inline int getMoney(void){ return this->inventory->getMoney(); }
+        inline void addMoney(int money){ inventory->addMoney(money); }
+        inline Item *dropItem(int inventorySlot)
+        {return inventory->popItem(inventorySlot);}
 
         inline int getMp(void){ return this->mp; }
         inline int getMaxMp(void){ return this->maxMp; }     
