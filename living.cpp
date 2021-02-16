@@ -2,7 +2,6 @@
 #include <time.h>    
 #include "living.h"
 #include "spell.h"
-#include "item.h"
 
 using namespace std;
 
@@ -16,7 +15,7 @@ Living::Living(string name)
     //*Debug
     cout << "Creating a Living..!" << endl;
     this->name = name;
-    this->level = 1;
+    this->level = 3;
     this->hp = this->maxHp = 1000; 
 }
 
@@ -38,13 +37,13 @@ Hero::Hero(string name) : Living(name){
     maxMp = mp = 500;
     experience = 0;
     
-    int damage = 120, price = 10, requiredLvl = 1;
+    int damage = 1000, price = 10, requiredLvl = 1;
     Weapon *weapon = new Weapon("Wooden Sword", damage, price, requiredLvl);
 
     int defence = 15; price = 20;
     Armor *armor = new Armor("Wooden Armor", defence, price, requiredLvl);
 
-    int money = 100;
+    int money = 200;
     this->inventory = new Inventory(weapon, armor, money);
 
 
@@ -156,8 +155,46 @@ int Hero::receiveDamage(int damage){
             cout << this->getName() << " Evade attack!! " << endl;
         } 
     }
+
+    if(this->getHp() == 0) cout << " Fell into a state of unconsciousness!!" << endl;
+
     return damageDealt;
 
+}
+
+
+void Hero::receiveExperience(int exp){
+
+    int result;
+
+    cout << getName() << " received "
+         << exp << " experience!" << endl;
+
+    if((getExp() + exp) >= 100){
+
+        levelUp();
+
+        int result = (getExp() + exp) - 100;
+
+        cout << 0 << " --> " << result << endl;
+
+    }
+    else{
+        result = getExp() + exp;
+        cout << getExp() << " --> " << result << endl;
+    }
+
+    setExp(result);
+
+}
+
+
+void Hero::levelUp(void){
+
+    cout << "Level up!!" << endl;
+    cout << getLevel() << " --> ";
+    addLevel(1);
+    cout << getLevel() << endl;
 }
 
 
@@ -371,8 +408,11 @@ int Monster::receiveDamage(int damage){
             cout << this->getName() << " Evade attack!! " << endl;
         } 
     }
-    return damageDealt;
 
+    if(this->getHp() == 0) cout << "Fell into a state of unconsciousness!!"
+                    << endl << endl;
+
+    return damageDealt;
 }
 
 void Monster::print(void) const{
