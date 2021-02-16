@@ -12,6 +12,11 @@ class Game{
         std::vector<Hero*> heroes;
 
         class Market *market;
+
+        char direction[4] = {'w', 's', 'a', 'd'};
+        
+        bool move(void);
+        
         void shop(Hero *hero);
 
         class Combat *combat;

@@ -110,6 +110,8 @@ class Hero : public Living{
 
         void checkInventory(void) const;
 
+        void checkStats(void) const;
+
         int inventoryAdd(Item *item);
 
         int equip(int inventorySlot);

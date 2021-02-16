@@ -19,6 +19,7 @@ class Item{
 
     public:
         enum itemTypes{weapon, armor, potion};
+        static std::string types[3];
         /* Constructor - Destructor */
         Item(std::string name, int price, int requiredLevel, int type);
         virtual ~Item() = 0;

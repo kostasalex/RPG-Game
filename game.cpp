@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
+#include<limits>
 #include "game.h"
 
 using namespace std;
@@ -44,9 +45,12 @@ Game::Game(){
                 ||       \|                    ||
                 =================================)" 
       << endl << endl;
-      cout << "1. Create another hero" << endl
-           << "0. Exit creation." << endl;
+      cout << "[1] Create another hero" << endl
+           << "[0] Exit creation." << endl
+           << ">";
       cin >> select;
+
+
       //*debug*
       //select = 0;
       if(select == 0)break;
@@ -78,9 +82,22 @@ Game::Game(){
          << "               || Dexterity : "
          << Paladin::startingDex + Paladin::additionalDex << endl
          << "               || Agility : "
-         << Paladin::startingAgi << endl << endl;
+         << Paladin::startingAgi << endl << endl
+         << ">";
 
     cin >> select;
+    /*while(1)
+    {
+      if(cin.fail())
+      {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+        cout<< "You have entered wrong input" <<endl;
+        cin>>select;
+      }
+      if(!cin.fail())
+      break;
+    }*/
     //*debug
     //select = 1;
     if(select < 1 || select > 3){
@@ -88,9 +105,10 @@ Game::Game(){
       continue;
     }
     
-    cout << "Enter name: " << endl;
+    cout << "Enter name: ";
     
     cin >> name;
+    cout << endl;
     //*Debug
     //name = "asapis";
 
@@ -131,54 +149,59 @@ Game::Game(){
 void Game::play(){
   
 
-  char input = ' ';
-  char direction[4] = {'w', 's', 'a', 'd'};
-  bool validLoc;
+  int input, heroIndex;
+
   system("clear");
-
-  grid->displayMap();
   
+    //*debug
+  Hero *heroes[this->heroesNum];
+  for(int i = 0; i < this->heroesNum; i++){
+    heroes[i] = this->heroes[i];
+  }
+
   while(1){
-
-
-    validLoc = false;
 
     //system("clear");
 
-    //*debug
-    Hero *heroes[this->heroesNum];
-    for(int i = 0; i < this->heroesNum; i++){
-      heroes[i] = this->heroes[i];
-    }
+    cout << "[1] Move " << endl
+         << "[2] Select A hero "<< endl
+         << "[0] Exit game " << endl;
 
-    cout << "Where do you want to go? w = up, s = down, a = left, d = right" << endl;
-    cout << "'x' for exit." << endl;
-    cin >> input; // Get user input from the keyboard
+    cin >> input;
 
-    if(input == 'x')break;
+    if(input == 0)return;
 
-    for(int i = 0; i < 4; i++){
-      if(input == direction[i]){
-        validLoc = grid->move(direction[i]);
-        break;
-      }
-    }
-
-    grid->displayMap();
-
-    if(validLoc == false){
-      cout << "Oops couldn't move there.." << endl;
-      continue;
-    }
-    else{
-
+    if(input == 1){
+      grid->displayMap();
+      if(move() == false)continue;
+      grid->displayMap();
       setGameState(grid->getBlockType());
       cout << "** " << this->gameState <<" **" << endl;
       switch(this->gameState){
         case trading:
-          system("clear");
-          this->shop(heroes[0]);
-          system("clear");
+          while(1){
+            system("clear");
+            cout << "[1] Select a hero to enter market " << endl
+                << "[0] Go back " << endl;
+            
+            cin >> input;
+
+            if(input == 1){
+              for(int i = 0; i < this->heroesNum; i++)
+                cout << "[" << i << "] : " << heroes[i]->getName() << endl;
+
+              cin >> heroIndex;
+
+              if(heroIndex < 0 && heroIndex > this->heroesNum){
+                cout << "Invalid selection.." << endl;
+                continue;
+              }
+              this->shop(heroes[heroIndex]);
+              system("clear");
+            }
+
+          }
+
           break;
         case fighting:
           system("clear");
@@ -187,17 +210,85 @@ void Game::play(){
           combat->fight();
           sleep(2);
           cout <<"Combat ended! " << endl;
-
       }
+      //system("clear");
+      cout << endl
+      << "===============================================================" 
+      << endl << endl;
     }
 
-    //system("clear");
-    cout << endl
-    << "===============================================================" 
-    << endl << endl;
-    grid->displayMap();
-  }
+    else if(input == 2){
+      for(int i = 0; i < this->heroesNum; i++)
+        cout << "[" << i << "] : " << heroes[i]->getName() << endl;
 
+      cin >> heroIndex;
+      
+      if(heroIndex < 0 && heroIndex > this->heroesNum){
+        cout << "Invalid selection.." << endl;
+        continue;
+      }
+
+      while(1){
+        cout << "[1] Check inventory " << endl
+             << "[2] Check stats "<< endl
+             << "[0] Go back " << endl;
+
+        cin >> input;
+
+        if(input < 0 && input > 2){
+          cout << "Invalid selection.." << endl;
+          continue;
+        }
+        if(input == 0)break;
+
+        system("clear");
+
+        if(input == 2){
+
+          cout << heroes[heroIndex]->getName() << endl;
+          heroes[heroIndex]->checkStats();
+          cout << endl;
+        }
+        else if(input == 1){
+          cout << heroes[heroIndex]->getName() << endl;
+          heroes[heroIndex]->checkInventory();
+          cout << endl;
+          cout << "[1] Equip item " << endl
+                << "Any other number to Go back " << endl;
+
+          cin >> input;
+
+          if(input == 1){
+            cout << "Enter inventory slot: ";
+            cin >> input;
+            heroes[heroIndex]->equip(input);
+          }
+        }
+      }
+    }
+  }
+}
+
+
+bool Game::move(void){
+  bool validLoc = false;
+  char input;
+
+  cout << "Where do you want to go? [w] = up, [s] = down, [a] = left, [d] = right"
+      << endl << ">";
+
+  cin >> input; 
+
+  for(int i = 0; i < 4; i++){
+    if(input == this->direction[i]){
+      validLoc = grid->move(this->direction[i]);
+      break;
+    }
+  }
+  if(validLoc == false)
+    cout << "Oops couldn't move there.." << endl;
+
+  return validLoc;
 }
 
 

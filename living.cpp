@@ -216,6 +216,23 @@ void Hero::checkInventory(void) const{
 } 
 
 
+void Hero::checkStats(void) const{
+
+    cout << "==================================" << endl
+    << "Level: "<< getLevel() << endl
+    << "Experience: " << this->experience << "/" << "100" << endl
+    << "Life: " << getHp() << "/" << getMaxHp() << endl
+    << "Mana: " << this->mp << "/" << this->maxMp << endl
+    << endl << "----------------------------------" << endl
+    << ">> Strength: " << this->current.str << endl
+    << ">> Dexterity: " << this->current.dex  << endl
+    << ">> Agility: "  << this->current.agi  << endl 
+    << "==================================" << endl << endl;
+
+
+}
+
+
 int Hero::inventoryAdd(Item *item){
     return this->inventory->addItem(item);
 }
@@ -227,20 +244,43 @@ int Hero::equip(int inventorySlot){
     int result;
     
     Item *item = inventory->getItem(inventorySlot);
-    if(item == nullptr) return notFound;
+    if(item == nullptr)result = notFound;
+    else{
 
+        if(item->getType() == Item::weapon){
+            if(item->getLevel() > this->getLevel())result = higherLevel;
+            else result = this->inventory->equipWeapon((Weapon*)item);
+        }
+        else if(item->getType() == Item::armor){
+            if(item->getLevel() > this->getLevel())result = higherLevel;
+            else result = this->inventory->equipArmor((Armor*)item);
+        }
+        else result = wrongType;
+        
+    }
 
-    if(item->getType() == Item::weapon){
-        if(item->getLevel() > this->getLevel())result = higherLevel;
-        else result = this->inventory->equipWeapon((Weapon*)item);
+    switch(result){
+
+        case succeed:
+            cout << item->getName() << " equipped!" << endl;
+            inventory->popItem(inventorySlot);
+            break;
+
+        case notFound:
+            cout << "There is no item in slot "<< inventorySlot << endl;
+            break;
+
+        case higherLevel:
+            cout << "Couldn't equip " << item->getName()
+                 << ".. Missing" << item->getLevel() - getLevel()
+                 << " levels" << endl;
+            break;
+
+        case wrongType:
+            cout << "Can't equip " << Item::types[item->getType()] << endl;
+        
+        
     }
-    else if(item->getType() == Item::armor){
-        if(item->getLevel() > this->getLevel())result = higherLevel;
-        else result = this->inventory->equipArmor((Armor*)item);
-    }
-    else return wrongType;
-    
-    if(result == succeed)inventory->popItem(inventorySlot);
 
     return result;
 }
