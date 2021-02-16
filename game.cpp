@@ -9,11 +9,22 @@ string Market::productType[3] = {"weapon", "armor", "spell"};
 
 Game::Game(){
   
+  system("clear");
+
   this->gameState = peace;
 
-  cout << "Rpg game started!!" << endl;
-  cout << "You can create " << maxHeroes << " heroes maximum" << endl;
-  
+  cout <<R"(
+           =================================
+           ||     Rpg game started!!      || 
+           ||                             ||
+           ||       /|________________    ||
+           || O|===|* >________________>  ||
+           ||       \|                    ||
+           =================================)" 
+  << endl << endl;
+
+  cout << "You can create " << maxHeroes << " heroes maximum.." << endl << endl;
+
   int select;
   string name;
   Hero *hero;
@@ -23,22 +34,55 @@ Game::Game(){
   while(heroesNum < maxHeroes){
 
     if(heroesNum > 0){
+      system("clear");
+      cout <<R"(
+                =================================
+                ||     Rpg game started!!      || 
+                ||                             ||
+                ||       /|________________    ||
+                || O|===|* >________________>  ||
+                ||       \|                    ||
+                =================================)" 
+      << endl << endl;
       cout << "1. Create another hero" << endl
            << "0. Exit creation." << endl;
-      //cin >> select;
+      cin >> select;
       //*debug*
-      select = 0;
+      //select = 0;
       if(select == 0)break;
     }
 
-    cout << "Select a class : " << endl
-         << "1.Warrior"  << endl
-         << "2.Paladin"  << endl
-         << "3.Sorcerer" << endl;
+    cout << "Select a class :" << endl << endl;
+    cout << "[1] Warrior    || A warrior class has additional strength and agility"
+         << endl 
+         << "               || Strength : " 
+         << Warrior::startingStr + Warrior::additionalStr << endl
+         << "               || Dexterity : "
+         << Warrior::startingDex << endl
+         << "               || Agility : "
+         << Warrior::startingAgi + Warrior::additionalAgi << endl << endl;
+    
+    cout << "[2] Sorcerer    || A Sorcerer class has additional dexterity and agility"
+         << endl 
+         << "               || Strength : " 
+         << Sorcerer::startingStr << endl
+         << "               || Dexterity : "
+         << Sorcerer::startingDex + Sorcerer::additionalDex << endl
+         << "               || Agility : "
+         << Sorcerer::startingAgi + Sorcerer::additionalAgi << endl << endl;
+    
+    cout << "[3] Paladin    || A Paladin class has additional strength and dexterity"
+         << endl 
+         << "               || Strength : " 
+         << Paladin::startingStr + Paladin::additionalStr << endl
+         << "               || Dexterity : "
+         << Paladin::startingDex + Paladin::additionalDex << endl
+         << "               || Agility : "
+         << Paladin::startingAgi << endl << endl;
 
-    //cin >> select;
+    cin >> select;
     //*debug
-    select = 1;
+    //select = 1;
     if(select < 1 || select > 3){
       cout << "Invalid number!"<< endl;
       continue;
@@ -46,18 +90,18 @@ Game::Game(){
     
     cout << "Enter name: " << endl;
     
-    //cin >> name;
+    cin >> name;
     //*Debug
-    name = "asapis";
+    //name = "asapis";
 
     switch(select){
       case 1:
         hero = new Warrior(name);
 
         //*debug
-        this->heroes.push_back(hero);
-        this->heroesNum++;
-        hero = new Warrior("dvp");
+        //this->heroes.push_back(hero);
+        //this->heroesNum++;
+        //hero = new Warrior("dvp");
         break;
       
       case 2:

@@ -32,7 +32,8 @@ Hero::Hero(string name) : Living(name){
     cout << "Becoming a Hero..!" << endl;
 
     /* Init strength, dexterity, agility */
-    this->current = this->base = {10,10,10};
+    this->current = 
+    this->base = {startingStr, startingDex, startingAgi};
 
     maxMp = mp = 500;
     experience = 0;
@@ -307,8 +308,8 @@ Warrior::Warrior(string name) : Hero(name){
     //*Debug
     cout << "Becoming a warrior..!" << endl;
     //Inscrease strength and agility
-    addBaseStats(5,0,5);
-    addStats(5,0,5);
+    addBaseStats(additionalStr,0,additionalAgi);
+    addStats(additionalStr,0,additionalAgi);
 
 }
 
@@ -324,9 +325,8 @@ Sorcerer::Sorcerer(string name) : Hero(name){
     //*Debug
     cout << "Becoming a sorcerer..!" << endl;
     //Inscrease dexterity and agility
-    addBaseStats(0,5,5);
-    addStats(0,5,5);
-
+    addBaseStats(0,additionalDex,additionalAgi);
+    addStats(0,additionalDex,additionalAgi);
 
 }
 
@@ -342,8 +342,8 @@ Paladin::Paladin(string name) : Hero(name){
     //*Debug
     cout << "Becoming a paladin..!" << endl;
     //Inscrease strength and dexterity
-    addBaseStats(5,5,0);
-    addStats(5,5,0);
+    addBaseStats(additionalStr,additionalDex,0);
+    addStats(additionalStr,additionalDex,0);
 
 }
 
@@ -360,10 +360,11 @@ Monster::Monster(string name) : Living(name){
     cout << "Becoming a monster..!" << endl;
 
     //Init damage
-    baseDmg = currentDmg = {30, 80};
+    baseDmg = currentDmg = 
+    {startingDmg, startingDmg + damageRange};
 
     //Init stats: defence dodge
-    base = current = {10, 10};
+    base = current = {startingDef, startingDodge};
 
 }
 
@@ -435,8 +436,8 @@ Dragon::Dragon(string name) : Monster(name){
     cout << "Becoming a Dragon..!" << endl;
 
     //Inscrease the damage
-    addBaseDmg(20);
-    addDmg(20);
+    addBaseDmg(additionalDmg);
+    addDmg(additionalDmg);
 
 }
 
@@ -453,8 +454,8 @@ Exoskeleton::Exoskeleton(string name) : Monster(name){
     cout << "Becoming a Dragon..!" << endl;
 
     //Inscrease defence
-    addBaseStats(10,0);
-    addStats(10,0);
+    addBaseStats(additionalDef,0);
+    addStats(additionalDef,0);
 }
 
 Exoskeleton::~Exoskeleton(){
@@ -470,8 +471,8 @@ Spirit::Spirit(string name) : Monster(name){
     cout << "Becoming a Dragon..!" << endl;
 
     //Inscrease dodge
-    addBaseStats(0,10);
-    addStats(0,10);
+    addBaseStats(0,additionalDodge);
+    addStats(0,additionalDodge);
 
 }
 

@@ -80,6 +80,9 @@ class Hero : public Living{
 
 
     public:
+        static const int startingStr = 10;
+        static const int startingDex = 10;
+        static const int startingAgi = 10;
 
         /* Return status when trying to equip item or learning a spell */
         enum equipLearn{succeed, notFound, higherLevel, wrongType};
@@ -166,28 +169,32 @@ class Hero : public Living{
 };
 
 class Warrior : public Hero{
-    //Has:
-    // + strength
-    // + agility
+
     public:
+
+        static const int additionalStr = 5;
+        static const int additionalAgi = 5;
+
         Warrior(std::string name);
         ~Warrior();
 };
 
 class Sorcerer : public Hero{
-    //Has:
-    // + dexterity
-    // + agility
+
     public:
+        /* Sorcerers have additional dexterity and agility */
+        static const int additionalDex = 5;
+        static const int additionalAgi = 5;
         Sorcerer(std::string name);
         ~Sorcerer();
 };
 
 class Paladin : public Hero{
-    //Has:
-    // + strength
-    // + dexterity
+
     public:
+        /* Paladins have additional strength and dexterity */
+        static const int additionalStr = 5;
+        static const int additionalDex = 5;
         Paladin(std::string name);
         ~Paladin();
 };
@@ -214,6 +221,10 @@ class Monster : public Living{
         current;     
 
     public:
+        static const int startingDef = 10;
+        static const int startingDodge = 10;
+        static const int startingDmg = 30;
+        static const int damageRange = 50;
         /* Constructor - Destructor */
         Monster(std::string name);
         virtual ~Monster() = 0;
@@ -230,12 +241,12 @@ class Monster : public Living{
         inline void addBaseDmg(int damage)
         {
             this->baseDmg.lb += damage;
-            this->baseDmg.ub += damage;
+            this->baseDmg.ub = this->baseDmg.lb + damageRange;
         }
         inline void addDmg(int damage)
         {
             this->currentDmg.lb += damage;
-            this->currentDmg.ub += damage;
+            this->currentDmg.ub += this->currentDmg.lb + damageRange;
         }
 
         inline void addStats(int defence, int dodge)
@@ -270,26 +281,29 @@ class Monster : public Living{
 };
 
 class Dragon : public Monster{
-    //Has:
-    // + dmg
+
     public:
+        static const int additionalDmg = 20;
+
         Dragon(std::string name);
         ~Dragon();
 
 };
 
 class Exoskeleton : public Monster{
-    //Has:
-    // + armor
+
     public:
+        static const int additionalDef = 20;
+
         Exoskeleton(std::string name);
         ~Exoskeleton();
 };
 
 class Spirit : public Monster{
-    //Has:
-    // + dodge
+
     public:
+        static const int additionalDodge = 20;
+
         Spirit(std::string name);
         ~Spirit();
 };
