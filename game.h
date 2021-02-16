@@ -85,11 +85,6 @@ class Combat{
 
         int round;
 
-        int lootMoney;
-
-        int lootItemsNum;
-
-        Item **lootItems;
 
         /* Fighting actions */
         void heroesTurn(void);
@@ -99,13 +94,22 @@ class Combat{
 
         void regeneration(void);
 
-        bool isFightEnd(void);
+        enum resutl{ stillFighting, heroesWon, monstersWon};
+        int fightResult(void);
 
 
         /* After fight actions*/
-        //*void receiveRewards(void);
+        void receiveRewards(void);
 
-        //*void revive(void);
+        void receivePenalty(void);
+
+        int gainMoney(int heroLvl);
+
+        Item* gainItem(void);
+
+        int gainExp(int heroLvl);
+
+        void reviveHeroes(void);
 
 
 

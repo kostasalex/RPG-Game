@@ -90,23 +90,23 @@ void Game::play(){
   char input = ' ';
   char direction[4] = {'w', 's', 'a', 'd'};
   bool validLoc;
+  system("clear");
 
+  grid->displayMap();
+  
   while(1){
 
 
     validLoc = false;
 
-    system("clear");
+    //system("clear");
 
-    grid->displayMap();
     //*debug
     Hero *heroes[this->heroesNum];
     for(int i = 0; i < this->heroesNum; i++){
       heroes[i] = this->heroes[i];
     }
-    this->combat = new Combat(heroes, heroesNum);
-    combat->fight();
-    return;
+
     cout << "Where do you want to go? w = up, s = down, a = left, d = right" << endl;
     cout << "'x' for exit." << endl;
     cin >> input; // Get user input from the keyboard
@@ -119,24 +119,39 @@ void Game::play(){
         break;
       }
     }
+
+    grid->displayMap();
+
     if(validLoc == false){
       cout << "Oops couldn't move there.." << endl;
-      sleep(1);
+      continue;
     }
     else{
-      
+
       setGameState(grid->getBlockType());
       cout << "** " << this->gameState <<" **" << endl;
       switch(this->gameState){
         case trading:
+          system("clear");
           this->shop(heroes[0]);
+          system("clear");
           break;
         case fighting:
-          //this->combat();
-          break;
+          system("clear");
+          cout << "Monsters appeared! " << endl;
+          this->combat = new Combat(heroes, heroesNum);
+          combat->fight();
+          sleep(2);
+          cout <<"Combat ended! " << endl;
+
       }
     }
+
     //system("clear");
+    cout << endl
+    << "===============================================================" 
+    << endl << endl;
+    grid->displayMap();
   }
 
 }
@@ -473,6 +488,7 @@ Combat::Combat(Hero **heroes, int heroesNum){
 
 }
 
+
 Combat::~Combat(){
 
     for(int i = 0; i < this->monstersNum; i++){
@@ -485,15 +501,48 @@ Combat::~Combat(){
 
 void Combat::fight(void){
 
-  while(isFightEnd() == false){
+  while(fightResult() == stillFighting){
+     
+    cout << endl 
+    << "===============================================================" 
+    <<  endl << endl <<"                  ***    Round "
+    << this->round << "   ***" << endl << endl;
+    cout
+    << "===================== Heroes turn =============================" 
+    << endl;
     heroesTurn();
+
     cout << endl;
+    cout
+    << "==================== Monsters turn ============================" 
+    << endl;
     monstersTurn();
     cout << endl;
+
+    cout 
+    << "++++++++++++++++++++ Regeneration +++++++++++++++++++++++++++++"
+    << endl;
+
     regeneration();
-    cout << endl;
+
   }
   cout << "Fight ended! " << endl;
+
+  reviveHeroes();
+
+  if(fightResult() == heroesWon){
+    cout << "Heroes won !" << endl
+    << "+++++++++++++++++++ Combat Rewards ++++++++++++++++++++++++++++"
+    << endl;
+
+    receiveRewards();
+  }
+  else if(fightResult() == monstersWon){
+    cout << "Heroes lost !" << endl
+    << "++++++++++++++++++++ Regeneration +++++++++++++++++++++++++++++"
+    << endl;
+    receivePenalty();
+  }
 
   for(int i = 0; i < heroesNum; i++){
     heroes[i]->print();
@@ -512,13 +561,23 @@ void Combat::heroesTurn(void){
   int availableHeroes[this->heroesNum] = {};
   
   int select, heroIndex, monsterIndex, spellIndex; 
-  bool isAvailable, isAlive;
+  bool isAvailable, isAlive, isMonsterAlive;
 
   while(1){ //Menu 1
+
+
+
+    /* Check if monsters are still alive */
+    isMonsterAlive = false;
+
+    for(int i = 0; i < this->monstersNum; i++)
+      if(monsters[i]->getHp() > 0)isMonsterAlive = true;
+
+    if(isMonsterAlive == false)return;
+
+    /* Check if heroes are still available and alive*/
     isAvailable = false;
     isAlive = false;
-
-    /* Check if heroes are still available */
     for(int i = 0; i < this->heroesNum; i++){
       if(heroes[i]->getHp() != 0) isAlive = true;
   
@@ -578,8 +637,11 @@ void Combat::heroesTurn(void){
           if(availableHeroes[heroIndex])break;
           cout << "Select a monster " << endl;
 
-          for(int i = 0; i < this->monstersNum; i++)
+          for(int i = 0; i < this->monstersNum; i++){
+            if(monsters[i]->getHp() == 0)continue;
             cout << i << " : " << monsters[i]->getName() << endl;
+          }
+
 
           cin >> monsterIndex;
 
@@ -591,6 +653,7 @@ void Combat::heroesTurn(void){
           if(monsters[monsterIndex]->getHp() == 0){
             cout << monsters[monsterIndex]->getName() 
                 << " cant fight back .. is Unconscious ..!" << endl;
+                continue;
           } 
           while(1){
             if(availableHeroes[heroIndex])break;
@@ -630,7 +693,7 @@ void Combat::heroesTurn(void){
       }
 
     }//>Menu 2
-
+  cout << endl << endl;
   }//>Menu 1
 
 }
@@ -647,9 +710,11 @@ void Combat::monstersTurn(void){
     target = getRandTarget();
     
     cout << this->monsters[i]->getName()
-         << " targeted " << this->heroes[target]->getName() << endl;
-
+         << " targeted " << this->heroes[target]->getName() << endl << endl;
+    sleep(1);
     this->monsters[i]->attack(heroes[target]);
+    cout << endl;
+    sleep(1);
   }
 
   this->round++;
@@ -674,28 +739,35 @@ void Combat::regeneration(){
 
   for(int i = 0; i < this->heroesNum; i++){
     if(this->heroes[i]->getHp() != 0){
-      cout << heroes[i]->getName() << " hp: "
+      cout << heroes[i]->getName() << " hp regen: "
            << this->heroes[i]->getHp() << "-->";
 
-      heroes[i]->addHp(this->heroes[i]->getHp()*regenRate);
+      heroes[i]->addHp(this->heroes[i]->getMaxHp()*regenRate);
       cout << this->heroes[i]->getHp() << endl;
+
+      cout << "mp regen: " << this->heroes[i]->getMp() << "-->";
+
+      heroes[i]->addMp(this->heroes[i]->getMaxMp()*regenRate);
+      cout << this->heroes[i]->getMp() << endl << endl;
     }
+    else  cout << heroes[i]->getName() << " hp: Unconscious!" << endl << endl;
   }
 
   for(int i = 0; i < this->monstersNum; i++){
     if(this->monsters[i]->getHp() != 0){
-      cout << monsters[i]->getName() << " hp: "
+      cout << monsters[i]->getName() << " hp regen: "
            << this->monsters[i]->getHp() << "-->";
 
-      monsters[i]->addHp(this->monsters[i]->getHp()*regenRate);
-      cout << this->monsters[i]->getHp() << endl;
+      monsters[i]->addHp(this->monsters[i]->getMaxHp()*regenRate);
+      cout << this->monsters[i]->getHp() << endl << endl;
     }
+    else  cout << monsters[i]->getName() << " hp: Unconscious!" << endl << endl;
   }
 
 }
 
 
-bool Combat::isFightEnd(){
+int Combat::fightResult(){
 
   bool monstersDead = true;
   bool heroesDead = true;
@@ -714,6 +786,102 @@ bool Combat::isFightEnd(){
     }
   }
 
-  return (monstersDead || heroesDead);
+  if(heroesDead == true)return monstersWon;
+  else if(monstersDead == true)return heroesWon;
+  else return stillFighting;
+
+}
+
+
+void Combat::receiveRewards(void){
+
+  int money;
+  Item *item;
+
+  for(int i = 0; i < this->heroesNum; i++){
+
+    heroes[i]->receiveExperience(gainExp(heroes[i]->getLevel()));
+
+    money = gainMoney(heroes[i]->getLevel());
+    cout << heroes[i]->getName() << " picked up " 
+         << money << " gold!!" << endl << endl;
+
+    heroes[i]->addMoney(money);
+
+    if((item = gainItem())!= nullptr){
+      cout << heroes[i]->getName() << " picked up " 
+            << item->getName() << "  !!!" << endl << endl;
+      heroes[i]->inventoryAdd(item);
+    }
+  }
+
+}
+
+
+int Combat::gainMoney(int heroLvl)
+{
+  int result = 15;
+  
+  result += (result * (0.20 * heroLvl));
+  result += rand()%4;
+  result *= this->monstersNum;
+
+  return result;
+}
+
+
+Item* Combat::gainItem(){
+
+  Item *item = nullptr;
+
+  if(rand() % 50 == 1){
+    item = new Weapon("Power Sword", 220, 400, 1);
+  }
+
+  return item;
+
+}
+
+
+int Combat::gainExp(int heroLvl)
+{
+  int result = 10;
+  
+  result -= (result * (0.02 * heroLvl));
+  result += rand()%4;
+  result *= this->monstersNum;
+
+  return result;
+}
+
+
+void Combat::reviveHeroes(void){
+
+  for(int i = 0; i < this->heroesNum; i++){
+
+    cout << heroes[i]->getName() << " hp: "
+          << this->heroes[i]->getHp() << "-->";
+    heroes[i]->addHp(heroes[i]->getMaxHp()/2);
+    cout << this->heroes[i]->getHp() << endl << endl;
+
+
+  }
+
+}
+
+
+void Combat::receivePenalty(void){
+  
+  int moneyLoss;
+
+  for(int i = 0; i < heroesNum; i++){
+
+    moneyLoss = heroes[i]->getMoney() / 2;
+
+    cout << heroes[i]->getName() << " lost " 
+         << moneyLoss << " gold.." << endl << endl;
+
+    heroes[i]->subMoney(moneyLoss);
+  }
 
 }

@@ -75,6 +75,9 @@ class Hero : public Living{
 
         std::vector<class Spell*> spells;
 
+        void levelUp(void);
+        inline void setExp(int newExp){ this->experience = newExp; }
+
 
     public:
 
@@ -97,6 +100,8 @@ class Hero : public Living{
         int attack(Living *living) const override;
 
         int receiveDamage(int damage);
+
+        void receiveExperience(int exp);
         
         void checkSpells(void) const;
 
@@ -120,8 +125,13 @@ class Hero : public Living{
         inline int getAgi(void){ return this->current.agi; }   
 
         inline int getExp(void){ return this->experience; }
+        
         inline int getMoney(void){ return this->inventory->getMoney(); }
+
         inline void addMoney(int money){ inventory->addMoney(money); }
+
+        inline void subMoney(int money){ inventory->subMoney(money); }
+        
         inline Item *dropItem(int inventorySlot)
         {return inventory->popItem(inventorySlot);}
 
@@ -141,7 +151,6 @@ class Hero : public Living{
 
         inline void addMp(int points) //mp shouldn't be grater than maxHp
         {this->mp= ((this->mp + points) > maxMp)? maxMp : (this->mp + points);}
-        inline void addExp(int points){ this->experience += points; }
 
 
         inline void subStats(int str, int dex, int agi){
