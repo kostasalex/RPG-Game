@@ -130,7 +130,11 @@ class Hero : public Living{
         inline int getAgi(void){ return this->current.agi; }   
 
         inline int getExp(void){ return this->experience; }
-        
+
+        inline int getInventorySize(void) const{return this->inventory->getSize();}
+
+        inline int getSpellNum(void) const{return this->spells.size();}
+
         inline int getMoney(void){ return this->inventory->getMoney(); }
 
         inline void addMoney(int money){ inventory->addMoney(money); }

@@ -3,6 +3,9 @@
 #include "living.h"
 #include "grid.h"
 
+template<typename T>
+bool inputHandler(T &input, T options[], int size);
+
 class Game{
   
   private:

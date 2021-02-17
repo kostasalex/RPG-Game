@@ -151,6 +151,8 @@ class Inventory{
         Item *getItem(int inventorySlot);
         int addItem(Item *item);
 
+        inline int getSize(void) const {return this->items.size();}
+
         inline Weapon *getWeapon(void){return this->weapon;}
         inline Armor *getArmor(void){return this->armor;}
 
