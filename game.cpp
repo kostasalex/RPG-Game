@@ -68,7 +68,7 @@ Game::Game(){
          << "               || Agility : "
          << Warrior::startingAgi + Warrior::additionalAgi << endl << endl;
     
-    cout << "[2] Sorcerer    || A Sorcerer class has additional dexterity and agility"
+    cout << "[2] Sorcerer   || A Sorcerer class has additional dexterity and agility"
          << endl 
          << "               || Strength : " 
          << Sorcerer::startingStr << endl
@@ -174,23 +174,26 @@ void Game::play(){
           case trading:
             while(1){
               system("clear");
-              cout << "[1] Select a hero to enter market " << endl
-                  << "[0] Go back " << endl
-                  << ">";
-              
-              while(inputHandler(input, options, 2) == false);
+              if(this->heroesNum == 1)heroIndex = 0;
+              else{
+                cout << "[1] Select a hero to enter market " << endl
+                    << "[0] Go back " << endl
+                    << ">";
+                
+                while(inputHandler(input, options, 2) == false);
 
-              if(input == 1){
-                for(int i = 0; i < this->heroesNum; i++)
-                  cout << "[" << i << "] : " << heroes[i]->getName() << endl;
+                if(input == 1){
+                  for(int i = 0; i < this->heroesNum; i++)
+                    cout << "[" << i << "] : " << heroes[i]->getName() << endl;
 
-                cout << "Hero: ";
-                while(inputHandler(heroIndex, options, this->heroesNum) == false);
-                this->shop(heroes[heroIndex]);
-                system("clear");
+                  cout << "Hero: ";
+                  while(inputHandler(heroIndex, options, this->heroesNum) == false);
+                }
+                else break;
               }
-              else break;
-
+              this->shop(heroes[heroIndex]);
+              system("clear");
+              break;
             }
 
             break;
@@ -712,7 +715,7 @@ void Combat::heroesTurn(void){
 
   enum availability{ available, notAvailable};
   
-  int availableCounter, availableHeroes[this->heroesNum] = {};
+  int availableHeroesCount, availableMobsCount, availableHeroes[this->heroesNum] = {};
 
   /* Keep arrays with valid options */
   int options[5] = {0, 1, 2 ,3 ,4};
@@ -726,37 +729,38 @@ void Combat::heroesTurn(void){
   int spellsNum;
   int select;
   int heroIndex, monsterIndex, spellIndex;
- 
-  bool isMonsterAlive;
 
 
   while(1){ //Menu 1
 
-    availableCounter = 0;
+    availableMobsCount = availableHeroesCount = 0;
 
     /* Check if monsters are still alive */
-    isMonsterAlive = false;
+    for(int i = 0; i < this->monstersNum; i++){
+      if(monsters[i]->getHp() > 0){
+        monsterIndex = i;
+        availableMobsCount++;
+      }
+    }
 
-    for(int i = 0; i < this->monstersNum; i++)
-      if(monsters[i]->getHp() > 0)isMonsterAlive = true;
 
-    if(isMonsterAlive == false)return;
+    if(availableMobsCount == 0)return;
 
     /* Check if heroes are still available and alive*/
     for(int i = 0; i < this->heroesNum; i++){
       if(heroes[i]->getHp() != 0){
         if(availableHeroes[i] == available){
-          availableCounter++;
+          availableHeroesCount++;
           heroIndex = i; //In case of one hero keep index
         }
       } 
     }
 
 
-    if(availableCounter == 0)return;
+    if(availableHeroesCount == 0)return;
 
     /* If available heroes are more than 1 , select a hero.*/
-    else if(availableCounter > 1){
+    else if(availableHeroesCount > 1){
     
       cout << "Select a hero " << endl;
 
@@ -804,24 +808,31 @@ void Combat::heroesTurn(void){
       else if(select == 1){
         
         while(1){ //>>Menu 3
-          if(availableHeroes[heroIndex])break;
-          cout << "Select a monster " << endl;
+          if(availableHeroes[heroIndex])break;//Go back
 
-          for(int i = 0; i < this->monstersNum; i++){
-            if(monsters[i]->getHp() == 0)continue;
-            cout << i << " : " << monsters[i]->getName() << endl;
+          else if(availableMobsCount > 1){
+          
+            cout << "Select a monster " << endl;
+
+            for(int i = 0; i < this->monstersNum; i++){
+              if(monsters[i]->getHp() == 0)continue;
+              cout << i << " : " << monsters[i]->getName() << endl;
+            }
+
+
+            cout << "Monter:";
+
+            while(inputHandler(monsterIndex, selectMonster, monstersNum) == false);
+
+            if(monsters[monsterIndex]->getHp() == 0){
+              cout << monsters[monsterIndex]->getName() 
+                  << " cant fight back .. is Unconscious ..!" << endl;
+                  continue;
+            } 
           }
+          else cout << "Preselected Monster: " 
+                << monsters[monsterIndex]->getName() << endl;
 
-
-          cout << "Monter:";
-
-          while(inputHandler(monsterIndex, selectMonster, monstersNum) == false);
-
-          if(monsters[monsterIndex]->getHp() == 0){
-            cout << monsters[monsterIndex]->getName() 
-                << " cant fight back .. is Unconscious ..!" << endl;
-                continue;
-          } 
           while(1){
             if(availableHeroes[heroIndex])break; //Go back
 
