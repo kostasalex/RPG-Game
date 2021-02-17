@@ -3,7 +3,7 @@
 using namespace std;
 //!Temporary
 string statsMsg[3] = {"strength", "dexterity", "agility"};
-
+string Item::types[3] = {"weapon", "armor", "potion"};
 /* Base class *Item* implementation */
 
 Item::Item(string name, int price, int requiredLevel, int type)

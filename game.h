@@ -3,6 +3,9 @@
 #include "living.h"
 #include "grid.h"
 
+template<typename T>
+bool inputHandler(T &input, T options[], int size);
+
 class Game{
   
   private:
@@ -12,6 +15,11 @@ class Game{
         std::vector<Hero*> heroes;
 
         class Market *market;
+
+        char direction[4] = {'w', 's', 'a', 'd'};
+        
+        bool move(void);
+        
         void shop(Hero *hero);
 
         class Combat *combat;

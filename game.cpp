@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
+#include<limits>
 #include "game.h"
 
 using namespace std;
@@ -9,12 +10,24 @@ string Market::productType[3] = {"weapon", "armor", "spell"};
 
 Game::Game(){
   
+  system("clear");
+
   this->gameState = peace;
 
-  cout << "Rpg game started!!" << endl;
-  cout << "You can create " << maxHeroes << " heroes maximum" << endl;
-  
-  int select;
+  cout <<R"(
+           =================================
+           ||     Rpg game started!!      || 
+           ||                             ||
+           ||       /|________________    ||
+           || O|===|* >________________>  ||
+           ||       \|                    ||
+           =================================)" 
+  << endl << endl;
+
+  cout << "You can create " << maxHeroes << " heroes maximum.." << endl << endl;
+
+  int input;
+  int options[5] = {0,1,2,3,4};
   string name;
   Hero *hero;
 
@@ -23,41 +36,77 @@ Game::Game(){
   while(heroesNum < maxHeroes){
 
     if(heroesNum > 0){
-      cout << "1. Create another hero" << endl
-           << "0. Exit creation." << endl;
-      //cin >> select;
+      system("clear");
+      cout <<R"(
+                =================================
+                ||     Rpg game started!!      || 
+                ||                             ||
+                ||       /|________________    ||
+                || O|===|* >________________>  ||
+                ||       \|                    ||
+                =================================)" 
+      << endl << endl;
+      cout << "[1] Create another hero" << endl
+           << "[0] Exit creation." << endl
+           << ">";
+
+
+      while(inputHandler(input, options, 2) == false);
+
       //*debug*
-      select = 0;
-      if(select == 0)break;
+      //select = 0;
+      if(input == 0)break;
     }
 
-    cout << "Select a class : " << endl
-         << "1.Warrior"  << endl
-         << "2.Paladin"  << endl
-         << "3.Sorcerer" << endl;
+    cout << "Select a class :" << endl << endl;
+    cout << "[1] Warrior    || A warrior class has additional strength and agility"
+         << endl 
+         << "               || Strength : " 
+         << Warrior::startingStr + Warrior::additionalStr << endl
+         << "               || Dexterity : "
+         << Warrior::startingDex << endl
+         << "               || Agility : "
+         << Warrior::startingAgi + Warrior::additionalAgi << endl << endl;
+    
+    cout << "[2] Sorcerer    || A Sorcerer class has additional dexterity and agility"
+         << endl 
+         << "               || Strength : " 
+         << Sorcerer::startingStr << endl
+         << "               || Dexterity : "
+         << Sorcerer::startingDex + Sorcerer::additionalDex << endl
+         << "               || Agility : "
+         << Sorcerer::startingAgi + Sorcerer::additionalAgi << endl << endl;
+    
+    cout << "[3] Paladin    || A Paladin class has additional strength and dexterity"
+         << endl 
+         << "               || Strength : " 
+         << Paladin::startingStr + Paladin::additionalStr << endl
+         << "               || Dexterity : "
+         << Paladin::startingDex + Paladin::additionalDex << endl
+         << "               || Agility : "
+         << Paladin::startingAgi << endl << endl
+         << ">";
 
-    //cin >> select;
+    while(inputHandler(input, &options[1], 3) == false);
+
     //*debug
-    select = 1;
-    if(select < 1 || select > 3){
-      cout << "Invalid number!"<< endl;
-      continue;
-    }
+    //select = 1;
     
-    cout << "Enter name: " << endl;
+    cout << "Enter name: ";
     
-    //cin >> name;
+    cin >> name;
+    cout << endl;
     //*Debug
-    name = "asapis";
+    //name = "asapis";
 
-    switch(select){
+    switch(input){
       case 1:
         hero = new Warrior(name);
 
         //*debug
-        this->heroes.push_back(hero);
-        this->heroesNum++;
-        hero = new Warrior("dvp");
+        //this->heroes.push_back(hero);
+        //this->heroesNum++;
+        //hero = new Warrior("dvp");
         break;
       
       case 2:
@@ -87,86 +136,171 @@ Game::Game(){
 void Game::play(){
   
 
-  char input = ' ';
-  char direction[4] = {'w', 's', 'a', 'd'};
-  bool validLoc;
+  int input, heroIndex, options[5] = {0,1,2,3,4};
+
   system("clear");
-
-  grid->displayMap();
   
-  while(1){
-
-
-    validLoc = false;
-
-    //system("clear");
-
     //*debug
-    Hero *heroes[this->heroesNum];
-    for(int i = 0; i < this->heroesNum; i++){
-      heroes[i] = this->heroes[i];
-    }
-
-    cout << "Where do you want to go? w = up, s = down, a = left, d = right" << endl;
-    cout << "'x' for exit." << endl;
-    cin >> input; // Get user input from the keyboard
-
-    if(input == 'x')break;
-
-    for(int i = 0; i < 4; i++){
-      if(input == direction[i]){
-        validLoc = grid->move(direction[i]);
-        break;
-      }
-    }
-
-    grid->displayMap();
-
-    if(validLoc == false){
-      cout << "Oops couldn't move there.." << endl;
-      continue;
-    }
-    else{
-
-      setGameState(grid->getBlockType());
-      cout << "** " << this->gameState <<" **" << endl;
-      switch(this->gameState){
-        case trading:
-          system("clear");
-          this->shop(heroes[0]);
-          system("clear");
-          break;
-        case fighting:
-          system("clear");
-          cout << "Monsters appeared! " << endl;
-          this->combat = new Combat(heroes, heroesNum);
-          combat->fight();
-          sleep(2);
-          cout <<"Combat ended! " << endl;
-
-      }
-    }
-
-    //system("clear");
-    cout << endl
-    << "===============================================================" 
-    << endl << endl;
-    grid->displayMap();
+  Hero *heroes[this->heroesNum];
+  for(int i = 0; i < this->heroesNum; i++){
+    heroes[i] = this->heroes[i];
   }
 
+  while(1){
+
+    //system("clear");
+
+    cout << "[1] Move " << endl
+         << "[2] Select A hero "<< endl
+         << "[0] Exit game " << endl
+         << ">";
+
+
+    while(inputHandler(input, options, 3) == false);
+    
+    switch(input){
+      
+      case 0: //Exit game
+        return;
+      
+      case 1: //Move through grid
+
+        grid->displayMap();
+        if(move() == false)continue;
+        grid->displayMap();
+      
+        setGameState(grid->getBlockType());
+        switch(this->gameState){
+          case trading:
+            while(1){
+              system("clear");
+              cout << "[1] Select a hero to enter market " << endl
+                  << "[0] Go back " << endl
+                  << ">";
+              
+              while(inputHandler(input, options, 2) == false);
+
+              if(input == 1){
+                for(int i = 0; i < this->heroesNum; i++)
+                  cout << "[" << i << "] : " << heroes[i]->getName() << endl;
+
+                cout << "Hero: ";
+                while(inputHandler(heroIndex, options, this->heroesNum) == false);
+                this->shop(heroes[heroIndex]);
+                system("clear");
+              }
+              else break;
+
+            }
+
+            break;
+          case fighting:
+            system("clear");
+            cout << "Monsters appeared! " << endl;
+            this->combat = new Combat(heroes, heroesNum);
+            combat->fight();
+            sleep(2);
+            cout <<"Combat ended! " << endl;
+        }
+      //system("clear");
+      cout << endl
+      << "===============================================================" 
+      << endl << endl;
+      
+      break;
+
+      case 2:
+        for(int i = 0; i < this->heroesNum; i++)
+          cout << "[" << i << "] : " << heroes[i]->getName() << endl;
+        
+        cout << "Hero:";
+        while(inputHandler(heroIndex, options, this->heroesNum) == false);
+   
+        while(1){
+          cout << "[1] Check inventory " << endl
+              << "[2] Check stats "<< endl
+              << "[0] Go back " << endl
+              << ">";
+
+          while(inputHandler(input, options, 3) == false);
+
+          if(input == 0)break;
+
+          system("clear");
+
+          if(input == 2)
+          {
+            cout << heroes[heroIndex]->getName() << endl;
+            heroes[heroIndex]->checkStats();
+            cout << endl;
+          }
+
+          else if(input == 1)
+          {
+            cout << heroes[heroIndex]->getName() << endl;
+            heroes[heroIndex]->checkInventory();
+            cout << endl;
+            cout << "[1] Equip item " << endl
+                  << "[0] Go back " << endl
+                  << ">";
+
+            while(inputHandler(input, options, 2) == false);
+
+            if(input == 1){
+              cout << "Enter inventory slot: ";
+
+              int inventorySize = heroes[heroIndex]->getInventorySize();
+              int inventorySlots[inventorySize];
+              for(int i = 0; i < inventorySize; i++)inventorySlots[i] = i;
+
+              while(inputHandler(input, inventorySlots, inventorySize) == false);
+
+              heroes[heroIndex]->equip(input);
+            }
+          }
+        }
+    }
+  }
+}
+
+
+
+bool Game::move(void){
+  bool validLoc = false;
+  char input;
+
+  cout << "Where do you want to go? [w] = up, [s] = down, [a] = left, [d] = right"
+      << endl << "Direction: ";
+  
+  while(inputHandler(input, direction, 4) == false);
+
+  for(int i = 0; i < 4; i++){
+    if(input == this->direction[i]){
+      validLoc = grid->move(this->direction[i]);
+      break;
+    }
+  }
+
+  if(validLoc == false)
+    cout << "Oops couldn't move there.." << endl;
+
+  return validLoc;
 }
 
 
 void Game::shop(Hero *hero){
   
+  int options[5] = {0,1,2,3,4};
+  int money, select;
+
   cout << "Welcome to my store!!" << endl
-       << "What item are you looking for?" << endl;
+       << "What are you looking for?" << endl;
        
 
       Spell *spellTemp = nullptr;
       Item *itemTemp = nullptr;
 
-      int money, select;
+
       money = hero->getMoney();
       bool goBack;
 
@@ -174,9 +308,10 @@ void Game::shop(Hero *hero){
         
         cout << "1. Buy " << endl
              << "2. Sell" << endl
-             << "3. Exit" << endl;
+             << "3. Exit" << endl
+             <<">";
 
-        cin >> select;
+        while(inputHandler(select,&options[1], 3) == false);
 
         goBack = false;
 
@@ -194,14 +329,18 @@ void Game::shop(Hero *hero){
                   << "1. Armor" << endl
                   << "2. Spell" << endl
                   << "3. Go back" << endl
-                  << "4. Exit" << endl;
+                  << "4. Exit" << endl
+                  << ">" ;
 
-              cin >> select;
+              while(inputHandler(select, options, 5) == false);
               
               int productId;
               
-              if(select < 3 && select >= 0){
-                /* Select a product from the selected category */
+              if(select == 3 )break; // Go back
+              
+              else if(select == 4)return; // Exit
+              
+              else{ // 0 - 2: Select a product from the selected category 
                 productId = market->selectProduct(select);
                 if(productId == -1)continue;
               }
@@ -224,27 +363,37 @@ void Game::shop(Hero *hero){
                 case 3: //Go back
                   goBack = true;
                   break;
-
-                case 4: //Exit
-                  return;
-                  break;
-
-                default:
-                  cout << "Invalid selection !" << endl;
               }
               if(money != hero->getMoney()){
                 hero->addMoney(money - hero->getMoney());
               }
-              hero->print();
             }
             break;
           
           /* Sell a product to market the */
           case 2:
+            if(hero->getInventorySize() == 0){
+              cout << "Your inventory is empty!" << endl;
+              continue;
+            }
             while(1){
               cout << "Select item to sell" << endl;
               hero->checkInventory();
-              cin >> select;
+
+              int inventorySize = hero->getInventorySize();
+              int inventorySlots[inventorySize];
+              for(int i = 0; i < inventorySize; i++)inventorySlots[i] = i;
+
+              while(inputHandler(select, inventorySlots, inventorySize) == false){
+                cout << "1. Select another item " << endl;
+                cout << "0. Go back " << endl;
+                cout <<" >"<< endl;
+
+                while(inputHandler(select, options, 2) == false);
+                if(select == 0)break;
+                  
+              }
+
               itemTemp = hero->dropItem(select);
               if(itemTemp != nullptr){
                 market->buy(itemTemp, money);
@@ -253,13 +402,12 @@ void Game::shop(Hero *hero){
               }
               else cout << "Invalid inventory slot!! " << endl;
 
-              cout << "0. Sell another item " << endl
-                   << "Any key to Go back " << endl;
-
-              cin >> select;
-              if(select != 0)break; 
+              cout << "1. Sell another item " << endl
+                   << "0. Go back " << endl
+                   << ">";
+              while(inputHandler(select, options, 2) == false);
+              if(select == 0)break; 
             }
-
 
             break;
 
@@ -348,21 +496,25 @@ int Market::selectProduct(int type){
  
   int select; 
 
-  while(1){
+  int options[2] = {0,1};
 
-    this->showItems(type); 
+  this->showItems(type); 
 
-    cin >> select;
-
-    if(select >= productCounter[type] || select < 0){
-      cout << this->productType[type] << " " << select << " doesn't exist!"<< endl;
-      cout << "1. Select again" << endl
-           << "Any key to Go back "     << endl;
-      cin >> select;
-      if(select != 1)return -1;
+  int productSlots[productCounter[type]];
+  for(int i = 0; i < productCounter[type]; i++)productSlots[i] = i;
+  
+  while(inputHandler(select, productSlots, productCounter[type]) == false){
+    cout << "1. Select another item " << endl
+         << "0. Go back " << endl
+         <<">";
+    while(inputHandler(select, options, 2) == false);
+    if(select == 0){
+      select = -1;
+      break;
     }
-    else return select;
   }
+
+  return select;
 } 
 
 
@@ -557,15 +709,30 @@ void Combat::fight(void){
 
 
 void Combat::heroesTurn(void){
+
+  enum availability{ available, notAvailable};
   
-  int availableHeroes[this->heroesNum] = {};
+  int availableCounter, availableHeroes[this->heroesNum] = {};
+
+  /* Keep arrays with valid options */
+  int options[5] = {0, 1, 2 ,3 ,4};
+
+  int selectHero[heroesNum];
+  for(int i = 0; i < heroesNum; i++)selectHero[i] = i;
   
-  int select, heroIndex, monsterIndex, spellIndex; 
-  bool isAvailable, isAlive, isMonsterAlive;
+  int selectMonster[monstersNum];
+  for(int i = 0; i < monstersNum; i++)selectMonster[i] = i;
+
+  int spellsNum;
+  int select;
+  int heroIndex, monsterIndex, spellIndex;
+ 
+  bool isMonsterAlive;
+
 
   while(1){ //Menu 1
 
-
+    availableCounter = 0;
 
     /* Check if monsters are still alive */
     isMonsterAlive = false;
@@ -576,30 +743,34 @@ void Combat::heroesTurn(void){
     if(isMonsterAlive == false)return;
 
     /* Check if heroes are still available and alive*/
-    isAvailable = false;
-    isAlive = false;
     for(int i = 0; i < this->heroesNum; i++){
-      if(heroes[i]->getHp() != 0) isAlive = true;
-  
-      if(availableHeroes[i] == 0) isAvailable = true;
+      if(heroes[i]->getHp() != 0){
+        if(availableHeroes[i] == available){
+          availableCounter++;
+          heroIndex = i; //In case of one hero keep index
+        }
+      } 
     }
 
 
-    if(isAvailable == false || isAlive == false)return;
+    if(availableCounter == 0)return;
 
-    cout << "Select a hero " << endl;
+    /* If available heroes are more than 1 , select a hero.*/
+    else if(availableCounter > 1){
+    
+      cout << "Select a hero " << endl;
 
-    for(int i = 0; i < this->heroesNum; i++){
-      if(availableHeroes[i])continue;
-      cout << i << " : " << heroes[i]->getName() << endl;
-    }
+      for(int i = 0; i < this->heroesNum; i++){
+        if(availableHeroes[i])continue;
+        cout << i << " : " << heroes[i]->getName() << endl;
+      }
+      cout << "Hero:";
 
-    cin >> heroIndex;
+      while(inputHandler(heroIndex, selectHero, heroesNum) == false);
 
-    if(heroIndex >= 0 && heroIndex < this->heroesNum){
       if(heroes[heroIndex]->getHp() == 0){
         cout << heroes[heroIndex]->getName() 
-             << " cant fight .. is Unconscious ..!" << endl;
+              << " cant fight .. is Unconscious ..!" << endl;
         continue;   //Select another hero
       }
       else{
@@ -609,23 +780,22 @@ void Combat::heroesTurn(void){
         }
       }
     }
-    else continue; //Invalid input
-
+    else cout << "Preselected Hero: " << heroes[heroIndex]->getName() << endl;
 
 
     while(1){ //>Menu 2
-      if(availableHeroes[heroIndex])break;
+      if(availableHeroes[heroIndex])break; //Go back
+
       cout << "0. Check inventory " << endl
           << "1. Select a monster to attack " << endl
           << "2. Display " << heroes[heroIndex]->getName() << endl
-          << "3. Select another hero" << endl;
+          << "3. Select another hero" << endl
+          << ">";
 
-      cin >> select;
+      while(inputHandler(select, options, 4) == false);
+
       if(select == 3)break;
-      if(select > 3 && select < 0){
-        cout << "Invalid selection!!" << endl;
-        continue;
-      }
+
 
       if(select == 0){
         heroes[heroIndex]->checkInventory();
@@ -643,12 +813,9 @@ void Combat::heroesTurn(void){
           }
 
 
-          cin >> monsterIndex;
+          cout << "Monter:";
 
-          if(monsterIndex < 0 || monsterIndex >= this->monstersNum){
-            cout << "Invalid selection!!" << endl;
-            continue;
-          }
+          while(inputHandler(monsterIndex, selectMonster, monstersNum) == false);
 
           if(monsters[monsterIndex]->getHp() == 0){
             cout << monsters[monsterIndex]->getName() 
@@ -656,31 +823,47 @@ void Combat::heroesTurn(void){
                 continue;
           } 
           while(1){
-            if(availableHeroes[heroIndex])break;
+            if(availableHeroes[heroIndex])break; //Go back
 
             cout << "1. Attack" << endl
                  << "2. Cast Spell" << endl
-                 << "3. Go back" << endl;
+                 << "3. Go back" << endl
+                 << ">";
 
-            cin >> select;
+            while(inputHandler(select, options, 4) == false);
 
             if(select == 3)break;
-
-            if(select > 2 && select < 0){
-              cout << "Invalid selection!!" << endl;
-              continue;
-            }
             if(select == 1)heroes[heroIndex]->attack(monsters[monsterIndex]);
             else if(select == 2){
               
-              cout << "Select spell" << endl;
+              spellsNum = heroes[heroIndex]->getSpellNum();
+              if(spellsNum == 0){
+                cout << "There aren't any spells learned yet!" << endl;
+                continue;
+              }
+              
+              cout << "Select a spell" << endl;
               heroes[heroIndex]->checkSpells();
-              cin >> spellIndex;
+
+              int selectSpell[spellsNum];
+              for(int i = 0; i < spellsNum; i++)selectSpell[i] = i;
+              cout << "Spell: ";
+
+              while(inputHandler(spellIndex, selectSpell, spellsNum) == false){
+                cout << "1. Select another spell " << endl;
+                cout << "0. Go back " << endl;
+                cout <<" >"<< endl;
+
+                while(inputHandler(select, options, 2) == false);
+                if(select == 0)break;
+              }
+              if(select == 0)continue; //Go back
 
               if(heroes[heroIndex]->castSpell(spellIndex, monsters[monsterIndex])\
                != Hero::succeed)continue;
             }
-
+            //If hero use spell or attack , 
+            //his turn is ended for the current round
             availableHeroes[heroIndex]++;
           }//>>Menu 3
 
@@ -885,3 +1068,30 @@ void Combat::receivePenalty(void){
   }
 
 }
+
+template<typename T>
+bool inputHandler(T &input, T options[], int size){
+
+  cin >> input;
+
+  while(1)
+  {
+    if(cin.fail())
+    {
+      cin.clear();
+      cin.ignore(numeric_limits<streamsize>::max(),'\n');
+      cout << "Invalid option.." <<endl;
+      cin >> input;
+    }
+    if(!cin.fail()){
+      for(int i = 0; i < size; i++){
+        if(options[i] == input)return true;
+      }
+      cout << "Wrong option.." <<endl;
+      break;
+    }
+  }
+  return false;
+}
+
+

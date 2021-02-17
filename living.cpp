@@ -32,7 +32,8 @@ Hero::Hero(string name) : Living(name){
     cout << "Becoming a Hero..!" << endl;
 
     /* Init strength, dexterity, agility */
-    this->current = this->base = {10,10,10};
+    this->current = 
+    this->base = {startingStr, startingDex, startingAgi};
 
     maxMp = mp = 500;
     experience = 0;
@@ -215,6 +216,23 @@ void Hero::checkInventory(void) const{
 } 
 
 
+void Hero::checkStats(void) const{
+
+    cout << "==================================" << endl
+    << "Level: "<< getLevel() << endl
+    << "Experience: " << this->experience << "/" << "100" << endl
+    << "Life: " << getHp() << "/" << getMaxHp() << endl
+    << "Mana: " << this->mp << "/" << this->maxMp << endl
+    << endl << "----------------------------------" << endl
+    << ">> Strength: " << this->current.str << endl
+    << ">> Dexterity: " << this->current.dex  << endl
+    << ">> Agility: "  << this->current.agi  << endl 
+    << "==================================" << endl << endl;
+
+
+}
+
+
 int Hero::inventoryAdd(Item *item){
     return this->inventory->addItem(item);
 }
@@ -226,20 +244,43 @@ int Hero::equip(int inventorySlot){
     int result;
     
     Item *item = inventory->getItem(inventorySlot);
-    if(item == nullptr) return notFound;
+    if(item == nullptr)result = notFound;
+    else{
 
+        if(item->getType() == Item::weapon){
+            if(item->getLevel() > this->getLevel())result = higherLevel;
+            else result = this->inventory->equipWeapon((Weapon*)item);
+        }
+        else if(item->getType() == Item::armor){
+            if(item->getLevel() > this->getLevel())result = higherLevel;
+            else result = this->inventory->equipArmor((Armor*)item);
+        }
+        else result = wrongType;
+        
+    }
 
-    if(item->getType() == Item::weapon){
-        if(item->getLevel() > this->getLevel())result = higherLevel;
-        else result = this->inventory->equipWeapon((Weapon*)item);
+    switch(result){
+
+        case succeed:
+            cout << item->getName() << " equipped!" << endl;
+            inventory->popItem(inventorySlot);
+            break;
+
+        case notFound:
+            cout << "There is no item in slot "<< inventorySlot << endl;
+            break;
+
+        case higherLevel:
+            cout << "Couldn't equip " << item->getName()
+                 << ".. Missing" << item->getLevel() - getLevel()
+                 << " levels" << endl;
+            break;
+
+        case wrongType:
+            cout << "Can't equip " << Item::types[item->getType()] << endl;
+        
+        
     }
-    else if(item->getType() == Item::armor){
-        if(item->getLevel() > this->getLevel())result = higherLevel;
-        else result = this->inventory->equipArmor((Armor*)item);
-    }
-    else return wrongType;
-    
-    if(result == succeed)inventory->popItem(inventorySlot);
 
     return result;
 }
@@ -307,8 +348,8 @@ Warrior::Warrior(string name) : Hero(name){
     //*Debug
     cout << "Becoming a warrior..!" << endl;
     //Inscrease strength and agility
-    addBaseStats(5,0,5);
-    addStats(5,0,5);
+    addBaseStats(additionalStr,0,additionalAgi);
+    addStats(additionalStr,0,additionalAgi);
 
 }
 
@@ -324,9 +365,8 @@ Sorcerer::Sorcerer(string name) : Hero(name){
     //*Debug
     cout << "Becoming a sorcerer..!" << endl;
     //Inscrease dexterity and agility
-    addBaseStats(0,5,5);
-    addStats(0,5,5);
-
+    addBaseStats(0,additionalDex,additionalAgi);
+    addStats(0,additionalDex,additionalAgi);
 
 }
 
@@ -342,8 +382,8 @@ Paladin::Paladin(string name) : Hero(name){
     //*Debug
     cout << "Becoming a paladin..!" << endl;
     //Inscrease strength and dexterity
-    addBaseStats(5,5,0);
-    addStats(5,5,0);
+    addBaseStats(additionalStr,additionalDex,0);
+    addStats(additionalStr,additionalDex,0);
 
 }
 
@@ -360,10 +400,11 @@ Monster::Monster(string name) : Living(name){
     cout << "Becoming a monster..!" << endl;
 
     //Init damage
-    baseDmg = currentDmg = {30, 80};
+    baseDmg = currentDmg = 
+    {startingDmg, startingDmg + damageRange};
 
     //Init stats: defence dodge
-    base = current = {10, 10};
+    base = current = {startingDef, startingDodge};
 
 }
 
@@ -435,8 +476,8 @@ Dragon::Dragon(string name) : Monster(name){
     cout << "Becoming a Dragon..!" << endl;
 
     //Inscrease the damage
-    addBaseDmg(20);
-    addDmg(20);
+    addBaseDmg(additionalDmg);
+    addDmg(additionalDmg);
 
 }
 
@@ -453,8 +494,8 @@ Exoskeleton::Exoskeleton(string name) : Monster(name){
     cout << "Becoming a Dragon..!" << endl;
 
     //Inscrease defence
-    addBaseStats(10,0);
-    addStats(10,0);
+    addBaseStats(additionalDef,0);
+    addStats(additionalDef,0);
 }
 
 Exoskeleton::~Exoskeleton(){
@@ -470,8 +511,8 @@ Spirit::Spirit(string name) : Monster(name){
     cout << "Becoming a Dragon..!" << endl;
 
     //Inscrease dodge
-    addBaseStats(0,10);
-    addStats(0,10);
+    addBaseStats(0,additionalDodge);
+    addStats(0,additionalDodge);
 
 }
 

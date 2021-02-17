@@ -19,6 +19,7 @@ class Item{
 
     public:
         enum itemTypes{weapon, armor, potion};
+        static std::string types[3];
         /* Constructor - Destructor */
         Item(std::string name, int price, int requiredLevel, int type);
         virtual ~Item() = 0;
@@ -149,6 +150,8 @@ class Inventory{
         Item* popItem(int inventorySlot);
         Item *getItem(int inventorySlot);
         int addItem(Item *item);
+
+        inline int getSize(void) const {return this->items.size();}
 
         inline Weapon *getWeapon(void){return this->weapon;}
         inline Armor *getArmor(void){return this->armor;}
