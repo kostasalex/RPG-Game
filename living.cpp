@@ -2,6 +2,7 @@
 #include <time.h>    
 #include "living.h"
 #include "spell.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -211,8 +212,49 @@ void Hero::checkSpells(void) const{
 }
 
 
-void Hero::checkInventory(void) const{
-    this->inventory->print();
+bool Hero::checkInventory(bool equip, bool drinkPotion){
+    
+    inventory->print();
+    int size;
+    if(inventory->getSize() != 0 ){
+
+        if(equip == true){
+            cout << "[1] Equip Item" << endl;
+            size = 2;
+        }
+        if(drinkPotion == true){
+            cout << "[2] Drink a potion "<< endl;
+            size = 3;
+        }
+        if(drinkPotion == true || equip == true){
+            
+            int selection;
+
+            cout << "[0] Go back" << endl
+                 <<">";
+            while(inputHandler(selection, options, size) == false);
+            
+            if(selection == 0)return false;
+
+            cout << "Inventory slot: ";
+            size = inventory->getSize();
+            int inventorySlots[size];
+            for(int i = 0; i < size; i++)inventorySlots[i] = i;
+            
+            int inventorySlot;
+            while(inputHandler(inventorySlot, inventorySlots, size)==false);
+
+            if(selection == 1){
+                if(this->equip(inventorySlot) == succeed)return true;
+            }
+            else if(selection == 2){
+                if(this->usePotion(inventorySlot) == succeed)return true;
+            }
+        }
+    }
+
+    return false;
+
 } 
 
 
@@ -293,13 +335,16 @@ int Hero::usePotion(int inventorySlot){
     Item *item = inventory->getItem(inventorySlot);
     if(item == nullptr) return notFound;
 
-    /* Check if item is weapon */
+    /* Check if item is potion */
 
     if(item->getType() == Item::potion){
         if(item->getLevel() > this->getLevel())result = higherLevel;
         else result = succeed;
     }
-    else return wrongType;
+    else{
+        cout << "Can't drink " << Item::types[item->getType()] << ".." << endl;
+        return wrongType;
+    } 
     
     if(result == succeed){
         inventory->popItem(inventorySlot);
@@ -317,7 +362,7 @@ int Hero::usePotion(int inventorySlot){
                 this->addStats(0, 0, agility); 
                 break;
         }
-        cout << "successfully restored " << potion->getPoints()
+        cout << "successfully inscreased " << potion->getPoints()
              << " points of " << statsMsg[potion->getStat()] << endl;
         //delete inventory->popItem(inventorySlot);
     }
@@ -327,7 +372,7 @@ int Hero::usePotion(int inventorySlot){
 }
 
 
-void Hero::print(void) const{
+void Hero::print(void){
     cout << "||Hero <" << getName() << ">||" << endl
     << "Level: "<< getLevel() << endl
     << "Experience: " << this->experience << "/" << "100" << endl
@@ -456,7 +501,7 @@ int Monster::receiveDamage(int damage){
     return damageDealt;
 }
 
-void Monster::print(void) const{
+void Monster::print(void) {
     cout << "((Monster <" << getName() << ">))" << endl
     << "Level: "<< getLevel() << endl
     << "Life: " << getHp() << "/" << getMaxHp() << endl

@@ -7,7 +7,6 @@
 #include <vector>
 #include "item.h"
 
-
 /* Base class for all livings in game,
    heroes and monsters               */
 class Living{
@@ -25,7 +24,7 @@ class Living{
 
 
         /* Virtual functions*/
-        virtual void print(void) const = 0;
+        virtual void print(void) = 0;
 
         virtual int attack(Living *living) const = 0; 
 
@@ -77,7 +76,8 @@ class Hero : public Living{
 
         void levelUp(void);
         inline void setExp(int newExp){ this->experience = newExp; }
-
+        int equip(int inventorySlot);
+        int usePotion(int inventorySlot);
 
     public:
         static const int startingStr = 10;
@@ -107,18 +107,16 @@ class Hero : public Living{
         void receiveExperience(int exp);
         
         void checkSpells(void) const;
-
-        void checkInventory(void) const;
+        //Returns true if an item equipped / or potions drinked
+        bool checkInventory(bool equip = false, bool drinkPotion = false);
 
         void checkStats(void) const;
 
         int inventoryAdd(Item *item);
 
-        int equip(int inventorySlot);
-        int usePotion(int inventorySlot);
 
 
-        void print(void) const override;
+        void print(void) override;
 
         /* Inline functions */        
         inline int getBaseStr(void){ return this->base.str; }
@@ -237,7 +235,7 @@ class Monster : public Living{
 
         
         /* Override functions */
-        void print(void) const override;
+        void print(void) override;
 
         int attack(Living *living) const override;
 
