@@ -56,14 +56,16 @@ class Market{
         Armor **armors;
 
         Spell **spells;
+
+        Potion **potions;
         
         int productCounter[3];
         
         void showItems(int type);
 
     public:
-        enum type{weapon , armor, spell};
-        static std::string productType[3];
+        enum type{weapon , armor, spell, potion};
+        static std::string productType[4];
 
         Market();
         ~Market();

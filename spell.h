@@ -22,6 +22,7 @@ class Spell{
         inline int debuff(int &stat){ }*/
 
     public:
+        static const int spellTypes = 3;
         enum statAffect{damage, defence, dodge};
         static std::string statMsg[3];
 

@@ -1,9 +1,8 @@
 #include "item.h"
 
 using namespace std;
-//!Temporary
-string statsMsg[3] = {"strength", "dexterity", "agility"};
-string Item::types[3] = {"weapon", "armor", "potion"};
+const string Potion::statsTypeMsg[3] = {"strength", "dexterity", "agility"};
+const string Item::itemTypeMsg[3] = {"weapon", "armor", "potion"};
 /* Base class *Item* implementation */
 
 Item::Item(string name, int price, int requiredLevel, int type)
@@ -49,7 +48,7 @@ Potion::~Potion(){
 void Potion::print() const{
     
     cout << "Potion: " << getName() << endl
-         << "Adding " << points << " points to " <<statsMsg[stat] << endl 
+         << "Adding " << points << " points to " <<statsTypeMsg[stat] << endl 
          << "Required level: " << getLevel() << endl
          << "Price: " << getPrice() << endl;
 

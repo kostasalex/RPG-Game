@@ -6,6 +6,7 @@
 #include <utility> 
 #include <vector>
 #include "item.h"
+#include "spell.h"
 
 /* Base class for all livings in game,
    heroes and monsters               */
@@ -29,6 +30,10 @@ class Living{
         virtual int attack(Living *living) const = 0; 
 
         virtual int receiveDamage(int damage) = 0;
+        /* Descrease  round for buffs / debuffs */
+        virtual void roundPass(void) = 0;
+
+        //virtual int regeneration(void) = 0;
 
 
         /* Inline functions */
@@ -49,6 +54,8 @@ class Living{
         inline void addMaxHp(int points) { this->maxHp += maxHp; }
 
         inline void addLevel(int levels) { this->level += levels; }
+
+        
 
 };
 
@@ -72,12 +79,55 @@ class Hero : public Living{
 
         Inventory *inventory;
 
-        std::vector<class Spell*> spells;
+        static const int buffRounds = 5;
+        static const std::string buffTypeMsg[Potion::potionTypes];
+        int buffs[Potion::potionTypes];
+
+
+        std::vector<Spell*> spells;
 
         void levelUp(void);
+
         inline void setExp(int newExp){ this->experience = newExp; }
+        
         int equip(int inventorySlot);
+        
         int usePotion(int inventorySlot);
+
+        void printBuffs(void) const;
+
+        void addBuff(int buffType, int points);
+
+        void removeBuff(int buffType);
+
+        inline void subStats(int str, int dex, int agi){
+          this->current.str -= str; 
+          this->current.dex -= dex; 
+          this->current.agi -= agi;
+        }
+
+        inline void setStats(int str, int dex, int agi){
+          this->current.str = str; 
+          this->current.dex = dex; 
+          this->current.agi = agi;
+        }
+
+
+        inline void subMp(int points) //mp shouldn't be less than 0
+        { this->mp = ((this->mp  - points) < 0)? 0 : (this->mp  - points); }
+
+    protected:
+
+        inline void addStats(int str, int dex, int agi){ 
+          this->current.str += str; 
+          this->current.dex += dex; 
+          this->current.agi += agi;
+        }
+        inline void addBaseStats(int str, int dex, int agi){ 
+          this->base.str += str; 
+          this->base.dex += dex; 
+          this->base.agi += agi;
+        }
 
     public:
         static const int startingStr = 10;
@@ -89,13 +139,15 @@ class Hero : public Living{
         static std::string statusMsg[4];
         
         enum stats{strength, dexterity, agility};
-        static std::string statsMsg[3];
+
+        inline void addMp(int points) //mp shouldn't be grater than maxHp
+        {this->mp= ((this->mp + points) > maxMp)? maxMp : (this->mp + points);}
 
         /* Constructor - Destructor */
         Hero(std::string name);
         virtual ~Hero() = 0;
 
-        bool learnSpell(class Spell *spell);
+        bool learnSpell(Spell *spell);
 
         int castSpell(int spellId, Living *living);
 
@@ -114,7 +166,8 @@ class Hero : public Living{
 
         int inventoryAdd(Item *item);
 
-
+        /* Descrease round of active buffs */
+        void roundPass(void) override;
 
         void print(void) override;
 
@@ -144,30 +197,6 @@ class Hero : public Living{
 
         inline int getMp(void){ return this->mp; }
         inline int getMaxMp(void){ return this->maxMp; }     
-
-        inline void addStats(int str, int dex, int agi){ 
-          this->current.str += str; 
-          this->current.dex += dex; 
-          this->current.agi += agi;
-        }
-        inline void addBaseStats(int str, int dex, int agi){ 
-          this->base.str += str; 
-          this->base.dex += dex; 
-          this->base.agi += agi;
-        }
-
-        inline void addMp(int points) //mp shouldn't be grater than maxHp
-        {this->mp= ((this->mp + points) > maxMp)? maxMp : (this->mp + points);}
-
-
-        inline void subStats(int str, int dex, int agi){
-          this->current.str -= str; 
-          this->current.dex -= dex; 
-          this->current.agi -= agi;
-        }
-        inline void subMp(int points) //mp shouldn't be less than 0
-        { this->mp = ((this->mp  - points) < 0)? 0 : (this->mp  - points); }
-
 
 
 };
@@ -224,6 +253,13 @@ class Monster : public Living{
         base,        
         current;     
 
+        static const int deBuffRounds = 5;
+        static const std::string deBuffTypeMsg[Spell::spellTypes];
+        int deBuffs[Spell::spellTypes];
+
+        void removeDeBuff(int deBuffType);
+        void printDeBuffs(void) const;
+
     public:
         static const int startingDef = 10;
         static const int startingDodge = 10;
@@ -240,6 +276,11 @@ class Monster : public Living{
         int attack(Living *living) const override;
 
         int receiveDamage(int damage) override;
+
+        void receiveDeBuff(int deBuffType, int points);
+
+        /* Descrease round of active buffs */
+        void roundPass(void) override;
 
         /* Inline functions */
         inline void addBaseDmg(int damage)
@@ -263,6 +304,7 @@ class Monster : public Living{
           this->base.defence += defence; 
           this->base.dodge += dodge; 
         }
+
 
         inline void subDmg(int points){
             currentDmg.lb -= points;

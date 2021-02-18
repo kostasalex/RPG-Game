@@ -6,7 +6,7 @@
 
 using namespace std;
 
-string Market::productType[3] = {"weapon", "armor", "spell"};
+string Market::productType[4] = {"weapon", "armor", "spell", "potion"};
 
 Game::Game(){
   
@@ -313,17 +313,18 @@ void Game::shop(Hero *hero){
               cout << "0. Weapon" << endl
                   << "1. Armor" << endl
                   << "2. Spell" << endl
-                  << "3. Go back" << endl
-                  << "4. Exit" << endl
+                  << "3. Potion" << endl
+                  << "4. Go back" << endl
+                  << "5. Exit" << endl
                   << ">" ;
 
-              while(inputHandler(select, options, 5) == false);
+              while(inputHandler(select, options, 6) == false);
               
               int productId;
               
-              if(select == 3 )break; // Go back
+              if(select == 4 )break; // Go back
               
-              else if(select == 4)return; // Exit
+              else if(select == 5)return; // Exit
               
               else{ // 0 - 2: Select a product from the selected category 
                 productId = market->selectProduct(select);
@@ -336,6 +337,7 @@ void Game::shop(Hero *hero){
               switch(select){
                 case Market::weapon:
                 case Market::armor:
+                case Market::potion:
                   itemTemp = market->sell(select, productId, money, hero->getLevel());
                   if(itemTemp != nullptr)hero->inventoryAdd(itemTemp);
                   break;
@@ -345,7 +347,7 @@ void Game::shop(Hero *hero){
                   if(spellTemp != nullptr)hero->learnSpell(spellTemp);
                   break;
 
-                case 3: //Go back
+                case 4: //Go back
                   goBack = true;
                   break;
               }
@@ -464,6 +466,12 @@ Market::Market(){
   spells[1] = new FireSpell("Inferno blast", spellDmg, 5, 100, 1, mp);
   spells[2] = new LightingSpell("Lighting bold", spellDmg, 5, 100, 1, mp);
 
+  this->productCounter[potion] = 3;
+
+  this->potions = new Potion *[productCounter[potion]];
+  potions[0] = new Potion("Power potion", Potion::strength, 20, 5, 1);
+  potions[1] = new Potion("Magic potion", Potion::dexterity, 20, 5, 1);
+  potions[2] = new Potion("Stealth potion", Potion::agility, 20, 5, 1);
 
   cout << "A new market " << this->name << " Constructed!" << endl;
 
@@ -475,10 +483,12 @@ Market::~Market(){
   for(int i = 0; i < this->productCounter[weapon]; i++)delete weapons[i];
   for(int i = 0; i < this->productCounter[armor]; i++)delete armors[i];
   for(int i = 0; i < this->productCounter[spell]; i++)delete spells[i];
+  for(int i = 0; i < this->productCounter[potion]; i++)delete potions[i];
 
   delete[] armors;
   delete[] weapons;
   delete[] spells;
+  delete[] potions;
 
   cout << "Market " << name << " to be destructed" << endl;
   
@@ -537,6 +547,15 @@ void Market::showItems(int type){
           cout << endl;
         }
         break;
+
+      case potion:
+        for(int i = 0; i < this->productCounter[potion]; i++){
+          cout << "______" << i << "______" << endl;
+          potions[i]->print(); 
+          cout << endl;
+        }
+        break;
+
     }
 
 
@@ -566,6 +585,9 @@ Item* Market::sell(int type, int id, int &money, int heroLvl){
       break;
     case this->armor:
       if(id < this->productCounter[this->armor])item = armors[id];
+      break;
+    case this->potion:
+      if(id < this->productCounter[this->potion])item = potions[id];
       break;
   }
 
@@ -779,8 +801,8 @@ void Combat::heroesTurn(void){
       if(availableHeroes[heroIndex])break; //Go back
 
       cout << "0. Check inventory " << endl
-          << "1. Select a monster to attack " << endl
-          << "2. Display " << heroes[heroIndex]->getName() << endl
+          << "1. Select a monster " << endl
+          << "2. Display stats " << heroes[heroIndex]->getName() << endl
           << "3. Select another hero" << endl
           << ">";
 
@@ -801,7 +823,7 @@ void Combat::heroesTurn(void){
         
         while(1){ //>>Menu 3
           if(availableHeroes[heroIndex])break;//Go back
-          if(select == 3)break;
+          if(select == 4)break;
 
           else if(availableMobsCount > 1){
           
@@ -831,12 +853,13 @@ void Combat::heroesTurn(void){
 
             cout << "1. Attack" << endl
                  << "2. Cast Spell" << endl
-                 << "3. Go back" << endl
-                 << ">";
+                 << "3. Display stats" << endl
+                 << "4. Go back" << endl
+                 <<">";
 
             while(inputHandler(select, &options[1], 4) == false);
 
-            if(select == 3)break;
+            if(select == 4)break;
             if(select == 1)heroes[heroIndex]->attack(monsters[monsterIndex]);
             else if(select == 2){
               
@@ -866,6 +889,10 @@ void Combat::heroesTurn(void){
               if(heroes[heroIndex]->castSpell(spellIndex, monsters[monsterIndex])\
                != Hero::succeed)continue;
             }
+            else if(select == 3){
+              monsters[monsterIndex]->print();
+              continue;
+            }
             //If hero use spell or attack , 
             //his turn is ended for the current round
             availableHeroes[heroIndex]++;
@@ -875,7 +902,7 @@ void Combat::heroesTurn(void){
 
       }
       else if(select == 2){
-        heroes[heroIndex]->print();
+        heroes[heroIndex]->checkStats();
         cout << endl;
       }
 
@@ -925,6 +952,7 @@ void Combat::regeneration(){
   double regenRate = 0.05;
 
   for(int i = 0; i < this->heroesNum; i++){
+    heroes[i]->roundPass();
     if(this->heroes[i]->getHp() != 0){
       cout << heroes[i]->getName() << " hp regen: "
            << this->heroes[i]->getHp() << "-->";
@@ -941,6 +969,7 @@ void Combat::regeneration(){
   }
 
   for(int i = 0; i < this->monstersNum; i++){
+    monsters[i]->roundPass();
     if(this->monsters[i]->getHp() != 0){
       cout << monsters[i]->getName() << " hp regen: "
            << this->monsters[i]->getHp() << "-->";

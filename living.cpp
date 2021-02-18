@@ -8,8 +8,12 @@ using namespace std;
 
 /* Base class *Living* implementation*/
 
-string Hero::statsMsg[3] = {"strength", "dexterity", "agility"};
 string Hero::statusMsg[4] = {"succeed", "notFound", "higherLevel", "wrongType"};
+const string Hero::buffTypeMsg[Potion::potionTypes] =
+    {"Power boost", "Magic boost", "Dodge boost"};
+
+const string Monster::deBuffTypeMsg[Spell::spellTypes] = 
+    {"Power curse", "Defence curse", "Dodge curse"};
 
 Living::Living(string name)
 { 
@@ -35,6 +39,8 @@ Hero::Hero(string name) : Living(name){
     /* Init strength, dexterity, agility */
     this->current = 
     this->base = {startingStr, startingDex, startingAgi};
+
+    this->buffs[Potion::potionTypes] = {};
 
     maxMp = mp = 500;
     experience = 0;
@@ -92,20 +98,7 @@ int Hero::castSpell(int spellId, Living *living) {
             //If damage received cast debuff
             if(living->receiveDamage(damage) != 0){
                 Monster *monster = (Monster*)living;
-                switch(targetStat){
-                    case Spell::damage:
-                        monster->subDmg(points);
-                        break;
-                    case Spell::defence:
-                        monster->subDef(points);
-                        break;
-                    case Spell::dodge:
-                        monster->subDodge(points);
-                        break;
-
-                }
-                cout << Spell::statMsg[targetStat] 
-                    << " descreased by " << points << endl;
+                monster->receiveDeBuff(targetStat, points);
             }
         }
     }
@@ -271,6 +264,8 @@ void Hero::checkStats(void) const{
     << ">> Agility: "  << this->current.agi  << endl 
     << "==================================" << endl << endl;
 
+    printBuffs();
+
 
 }
 
@@ -319,7 +314,7 @@ int Hero::equip(int inventorySlot){
             break;
 
         case wrongType:
-            cout << "Can't equip " << Item::types[item->getType()] << endl;
+            cout << "Can't equip " << Item::itemTypeMsg[item->getType()] << endl;
         
         
     }
@@ -342,16 +337,66 @@ int Hero::usePotion(int inventorySlot){
         else result = succeed;
     }
     else{
-        cout << "Can't drink " << Item::types[item->getType()] << ".." << endl;
+        cout << "Can't drink " << Item::itemTypeMsg[item->getType()] << ".." << endl;
         return wrongType;
     } 
     
     if(result == succeed){
         inventory->popItem(inventorySlot);
         Potion* potion = (Potion*)item;
-        int points = potion->getPoints();
+        addBuff(potion->getStat(), potion->getPoints());
+        //delete inventory->popItem(inventorySlot);
+    }
 
-        switch(potion->getStat()){
+    return result;
+
+}
+
+
+void Hero::printBuffs(void) const{
+    bool buffExist = false;
+
+    for(int i = 0; i < Potion::potionTypes; i++)
+        if(buffs[i] != 0)buffExist = true;
+
+    if(buffExist == true){
+        cout << "*Active buffs: ";
+        for(int i = 0; i < Potion::potionTypes; i++){
+            if(buffs[i] != 0){
+                cout << "# "  << buffTypeMsg[i] << " || "
+                     <<"Rounds remain: " << buffs[i] << " # ";
+            } 
+        }
+        cout << endl;
+            
+    }
+}
+
+
+void Hero::roundPass(void){
+
+    for(int i = 0; i < Potion::potionTypes; i++){
+        if(buffs[i] > 0){
+            buffs[i]--;
+            if(buffs[i] == 0){
+                removeBuff(i);
+            }
+        }
+    }
+}
+
+
+void Hero::addBuff(int buffType, int points){
+
+    if(buffType < 0 || buffType > Potion::potionTypes){
+        cout << "Couldn't add buff.. Invalid buffType" << endl;
+        return;
+    }
+
+    cout << "Buff " << buffTypeMsg[buffType];
+    if(this->buffs[buffType] == 0){
+        cout << " activated!!" << endl;
+        switch(buffType){
             case strength:
                 this->addStats(points, 0, 0);
                 break;
@@ -359,16 +404,41 @@ int Hero::usePotion(int inventorySlot){
                 this->addStats(0, points, 0); 
                 break;
             case agility:
-                this->addStats(0, 0, agility); 
+                this->addStats(0, 0, points); 
                 break;
         }
-        cout << "successfully inscreased " << potion->getPoints()
-             << " points of " << statsMsg[potion->getStat()] << endl;
-        //delete inventory->popItem(inventorySlot);
+        cout << "successfully inscreased " << points
+             << " points of " << Potion::statsTypeMsg[buffType] << endl;
+    }
+    else{/*If buff allready exist , don't add more points to stat affected*/
+        cout << " renewed!!" << endl;
     }
 
-    return result;
+    this->buffs[buffType] = buffRounds;
 
+}
+
+void Hero::removeBuff(int buffType){
+
+    if(buffType < 0 || buffType > Potion::potionTypes){
+        cout << "Couldn't remove buff.. Invalid buffType" << endl;
+        return;
+    }
+
+        switch(buffType){
+            case strength:
+                this->current.str =  this->base.str;
+                break;
+            case dexterity:
+                this->current.dex =  this->base.dex; 
+                break;
+            case agility:
+                this->current.agi =  this->base.agi;
+                break;
+        }
+
+    cout << buffTypeMsg[buffType] << " worn off!!" << endl;
+    
 }
 
 
@@ -501,6 +571,99 @@ int Monster::receiveDamage(int damage){
     return damageDealt;
 }
 
+
+void Monster::printDeBuffs(void) const{
+    bool buffExist = false;
+
+    for(int i = 0; i < Spell::spellTypes; i++)
+        if(deBuffs[i] != 0)buffExist = true;
+
+    if(buffExist == true){
+        cout << "*Active debuffs: ";
+        for(int i = 0; i < Potion::potionTypes; i++){
+            if(deBuffs[i] != 0){
+                cout << "# "  << deBuffTypeMsg[i] << " || "
+                     <<"Rounds remain: " << deBuffs[i] << " # ";
+            } 
+        }
+        cout << endl;
+            
+    }
+}
+
+
+void Monster::roundPass(void){
+
+    for(int i = 0; i < Spell::spellTypes; i++){
+        if(deBuffs[i] > 0){
+            deBuffs[i]--;
+            if(deBuffs[i] == 0){
+                removeDeBuff(i);
+            }
+        }
+    }
+}
+
+
+void Monster::receiveDeBuff(int deBuffType, int points){
+
+    if(deBuffType < 0 || deBuffType > Spell::spellTypes){
+        cout << "Couldn't add deBuff.. Invalid buffType" << endl;
+        return;
+    }
+
+    cout << "DeBuff " << deBuffTypeMsg[deBuffType];
+    if(this->deBuffs[deBuffType] == 0){
+        cout << " activated!!" << endl;
+        switch(deBuffType){
+            case Spell::damage:
+                subDmg(points);
+                break;
+            case Spell::defence:
+                subDef(points);
+                break;
+            case Spell::dodge:
+                subDodge(points);
+                break;
+        }
+        cout << "successfully descreased " << points
+             << " points of " << Spell::statMsg[deBuffType] << endl;
+    }
+    else{/*If buff allready exist , don't add more points to stat affected*/
+        cout << " renewed!!" << endl;
+    }
+
+    this->deBuffs[deBuffType] = deBuffRounds;
+
+}
+
+
+void Monster::removeDeBuff(int deBuffType){
+
+    if(deBuffType < 0 || deBuffType > Spell::spellTypes){
+        cout << "Couldn't remove debuff.. Invalid debuff type" << endl;
+        return;
+    }
+
+
+    switch(deBuffType){
+        case Spell::damage:
+            this->currentDmg = this->baseDmg;
+            break;
+        case Spell::defence:
+            this->current.defence = this->base.defence;
+            break;
+        case Spell::dodge:
+            this->current.dodge = this->base.dodge;
+            break;
+    }
+
+
+    cout << deBuffTypeMsg[deBuffType] << " worn off!!" << endl;
+    
+}
+
+
 void Monster::print(void) {
     cout << "((Monster <" << getName() << ">))" << endl
     << "Level: "<< getLevel() << endl
@@ -511,6 +674,8 @@ void Monster::print(void) {
     <<  this->currentDmg.ub << endl
     << "Defence: " << this->current.defence << endl
     << "Dodge: "  << this->current.dodge << endl;
+
+    printDeBuffs();
 }
 
 

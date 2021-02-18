@@ -19,7 +19,7 @@ class Item{
 
     public:
         enum itemTypes{weapon, armor, potion};
-        static std::string types[3];
+        static const std::string itemTypeMsg[3];
         /* Constructor - Destructor */
         Item(std::string name, int price, int requiredLevel, int type);
         virtual ~Item() = 0;
@@ -49,6 +49,10 @@ class Potion : public Item{
         int points;
 
     public:
+        static const int potionTypes = 3;
+        enum statsType{strength, dexterity, agility};
+        static const std::string statsTypeMsg[potionTypes];
+
         /* Constructor - Destructor */
         Potion(std::string name, int stat,\
         int price, int points, int requiredLevel);
