@@ -20,8 +20,8 @@ Living::Living(string name)
     //*Debug
     cout << "Creating a Living..!" << endl;
     this->name = name;
-    this->level = 3;
-    this->hp = this->maxHp = 1000; 
+    this->level = startingLevel;
+    this->hp = this->maxHp = startingHp; 
 }
 
 Living::~Living(){
@@ -42,8 +42,8 @@ Hero::Hero(string name) : Living(name){
 
     this->buffs[Potion::potionTypes] = {};
 
-    maxMp = mp = 500;
-    experience = 0;
+    maxMp = mp = startingMp;
+    experience = startingExperience;
     
     int damage = 1000, price = 10, requiredLvl = 1;
     Weapon *weapon = new Weapon("Wooden Sword", damage, price, requiredLvl);
@@ -51,7 +51,7 @@ Hero::Hero(string name) : Living(name){
     int defence = 15; price = 20;
     Armor *armor = new Armor("Wooden Armor", defence, price, requiredLvl);
 
-    int money = 200;
+    int money = startingMoney;
     this->inventory = new Inventory(weapon, armor, money);
 
 
@@ -65,7 +65,7 @@ Hero::~Hero(){
 
 bool Hero::learnSpell(Spell *spell){
 
-    if(this->getLevel() >= spell->getLvl()){
+    if(this->getLevel() >= spell->getLevel()){
         this->spells.push_back(spell);
         cout << this->getName() << " successfully learned spell "
         << spell->getName() << endl;
@@ -96,7 +96,7 @@ int Hero::castSpell(int spellId, Living *living) {
             this->subMp(spell->getMp());
 
             //If damage received and it's still alive cast debuff
-            if(living->receiveDamage(damage) != 0 && living->getHp()!=0 ){
+            if(living->receiveDamage(damage) != 0 && living->getHp()!= 0 ){
                 Monster *monster = (Monster*)living;
                 monster->receiveDeBuff(targetStat, points);
             }
@@ -160,31 +160,29 @@ int Hero::receiveDamage(int damage){
 
 void Hero::receiveExperience(int exp){
 
-    int result;
+    int result = getExp() + exp;
 
     cout << getName() << " received "
          << exp << " experience!" << endl;
 
-    if((getExp() + exp) >= 100){
-
-        levelUp();
-
-        int result = (getExp() + exp) - 100;
-
-        cout << 0 << " --> " << result << endl;
+    if(result >= maxExperience){
+        if(getLevel() == maxLevel){
+            result = maxExperience;
+        }
+        else{
+            result = (getExp() + exp) - maxExperience;
+            setExp(0);
+            levelUp();
+        }
 
     }
-    else{
-        result = getExp() + exp;
-        cout << getExp() << " --> " << result << endl;
-    }
 
+    cout << getExp() << " --> " << result << endl;
     setExp(result);
-
 }
 
 
-void Hero::revive(void){
+void Hero::revive(bool getPenalty){
 
     //Can't revive a living one..
     if(getHp() != 0){
@@ -197,13 +195,19 @@ void Hero::revive(void){
          << "Restored hp: " << getHp() << " --> ";
     this->addHp(restoreLife);
     cout << getHp() << endl;
+
+    if(getPenalty == true){
+        cout << "Money lost: " << getMoney() << " --> ";
+        subMoney(getMoney()/2);
+        cout << getMoney() << endl;
+    }
+
 }
 
 
 
 void Hero::goUnconscious(void){
-    cout << getName() 
-         << " Fell into a state of unconsciousness!!" << endl;
+    cout << "Fell into a state  of unconsciousness!!" << endl;
 
     for(int i = 0; i < Potion::potionTypes; i++){
         if(buffs[i] != 0){
@@ -238,9 +242,24 @@ void Hero::regeneration(void){
 void Hero::levelUp(void){
 
     cout << "Level up!!" << endl;
-    cout << getLevel() << " --> ";
+    cout << "Level: " << getLevel() << " --> ";
     addLevel(1);
     cout << getLevel() << endl;
+
+    cout 
+    << "str: " << current.str << " --> " << current.str + statsPerLevel << endl
+    << "dex: " << current.dex << " --> " << current.dex + statsPerLevel << endl
+    << "agi: " << current.agi << " --> " << current.agi + statsPerLevel << endl
+    << "Life: " << getHp() << "/" << getMaxHp() << " --> "
+    << getHp() + hpPerLevel << "/" << getMaxHp() + hpPerLevel << endl
+    << "Mana: " << this->mp << "/" << this->maxMp << " --> "
+    << this->mp + mpPerLevel << "/" << this->maxMp + mpPerLevel << endl << endl;
+
+    addStats(statsPerLevel, statsPerLevel, statsPerLevel);
+    addBaseStats(statsPerLevel, statsPerLevel, statsPerLevel);
+    addMaxHp(hpPerLevel);addHp(hpPerLevel);
+    addMaxMp(mpPerLevel);addMp(mpPerLevel);
+
 }
 
 
@@ -254,6 +273,89 @@ void Hero::checkSpells(void) const{
     }
     else cout << "No spell learned yet " << endl;
 }
+
+
+void Hero::pickUp(Item *item){
+    if(item != nullptr){
+        inventory->addItem(item);
+        cout << getName() << " Picked up " 
+        << item->getName() << "!!!" << endl;
+    }
+}
+
+
+void Hero::pickUp(int money){
+    if(money > 0){
+        addMoney(money);
+        cout << getName() << " Picked up " 
+        << money << " gold!!!" <<  endl;
+    }
+}
+
+
+Item* Hero::sell(int inventorySlot){
+
+    Item* item = inventory->popItem(inventorySlot);
+
+    if(item != nullptr){
+        cout << "Selling " << item->getName() << " .." << endl;
+    }
+    else{
+        cout << "Couldn't sell requested item, there is no item in slot "
+             << inventorySlot << "!!" << endl;
+    }
+
+    return item;
+}
+
+
+
+void Hero::buy(Item *item){
+
+    if(item != nullptr){
+        if(getMoney() >= item->getPrice()){
+            if(getLevel() >= item->getLevel()){
+                subMoney(item->getPrice());
+                cout << item->getName() << " successfully purchased!!" << endl; 
+            }
+            else cout << item->getName() << " requires level "
+                      << item->getLevel() << endl;
+        }
+    else cout << item->getPrice()- getMoney() << " gold is missing!" << endl;
+    }
+
+}
+
+
+void Hero::buy(Spell *spell){
+
+    if(spell != nullptr){
+        if(getMoney() >= spell->getPrice()){
+            if(getLevel() >= spell->getLevel()){
+                if(findSpell(spell) == false){
+                    subMoney(spell->getPrice());
+                    cout << spell->getName()
+                         << " successfully purchased!!" << endl; 
+                    learnSpell(spell);
+                }
+                else  cout << spell->getName()
+                           << " allready learned!!" << endl; 
+            }
+            else cout << spell->getName() << " requires level "
+                      << spell->getLevel() << endl;
+        }
+    else cout << spell->getPrice()- getMoney() << " gold is missing!" << endl;
+    }
+
+}
+
+
+bool Hero::findSpell(Spell *spell){
+    for(int i = 0; i < (int)spells.size(); i++){
+        if(spell == spells[i])return true;
+    }
+    return false;
+}   
 
 
 bool Hero::checkInventory(bool equip, bool drinkPotion){
@@ -437,6 +539,7 @@ void Hero::roundPass(void){
         }
     }
 }
+
 
 
 void Hero::addBuff(int buffType, int points){
@@ -748,13 +851,13 @@ void Monster::removeDeBuff(int deBuffType){
             break;
         case Spell::defence:
             cout << "defence: " << this->current.defence
-            << " - " << " --> ";
+            << " --> ";
             this->current.defence = this->base.defence;
             cout << this->current.defence << endl;
             break;
         case Spell::dodge:
             cout << "dodge: " << this->current.dodge
-            << " - " << " --> ";
+            << " --> ";
             this->current.dodge = this->base.dodge;
             cout << this->current.dodge << endl;
             break;

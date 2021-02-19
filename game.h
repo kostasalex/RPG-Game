@@ -73,7 +73,7 @@ class Market{
         /* Returns -1 if no product selected */
         int selectProduct(int type); 
 
-        bool buy(Item *item, int &money);
+        int buy(Item *item);
 
         Item* sell(int type, int id, int &money, int heroLvl);
 
@@ -118,7 +118,7 @@ class Combat{
 
         int gainExp(int heroLvl);
 
-        void reviveHeroes(void);
+        void reviveHeroes(bool receivePenalty);
 
 
 

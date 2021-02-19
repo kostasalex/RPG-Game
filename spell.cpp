@@ -135,7 +135,7 @@ void LightingSpell::print(void) {
     <<  this->getUbDmg() << endl
     <<  "Descrease enemy's dodge by " << this->getPoints() << endl
     << "requires " << this->getMp() << " mp" << endl
-    << "Level "  << this->getLvl() << endl
+    << "Level "  << this->getLevel() << endl
     << "Price:" << this->getPrice() << endl;
 
 }

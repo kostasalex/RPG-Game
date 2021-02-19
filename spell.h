@@ -39,7 +39,7 @@ class Spell{
 
         inline int getMp(void) const {return this->mpCost;}
 
-        inline int getLvl(void) const {return this->requiredLevel;}
+        inline int getLevel(void) const {return this->requiredLevel;}
 
         inline std::string getName(void) const {return this->name;}
 

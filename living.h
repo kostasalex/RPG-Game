@@ -13,6 +13,10 @@
 class Living{
 
     private: 
+        static const int startingHp = 1000;
+
+        static const int startingLevel = 1;
+
         std::string name;
         int level;
         int maxHp;      //Health Power
@@ -27,7 +31,7 @@ class Living{
         inline void addHp(int points) //hp shouldn't be greater than maxHp
         { this->hp = ((hp + points) > maxHp)? maxHp : (hp + points); }
 
-        inline void addMaxHp(int points) { this->maxHp += maxHp; }
+        inline void addMaxHp(int points) { this->maxHp += points; }
 
         inline void subHp(int points) //hp shouldn't be less than 0
         { this->hp = ((hp - points) < 0)? 0 : (hp - points); }
@@ -62,13 +66,33 @@ class Living{
         inline int getHp(void) const { return this->hp; }
 
 
-        
-
 };
 
 
 /* Heroes and their classes */
 class Hero : public Living{
+
+    static const int startingExperience = 90;
+    
+    static const int startingMoney = 1000;
+
+    static const int maxLevel = 10;
+
+    /* Every received buff duration*/
+    static const int buffRounds = 5;
+
+    static const int maxExperience = 100; 
+
+    static const int startingMp = 500;
+
+    static const int statsPerLevel = 2;
+
+    static constexpr double regenRate = 0.05;
+    
+    static const int hpPerLevel = 100;
+
+    static const int mpPerLevel = 50;
+
 
     private: 
         struct Stats 
@@ -86,7 +110,7 @@ class Hero : public Living{
 
         Inventory *inventory;
 
-        static const int buffRounds = 5;
+
         static const std::string buffTypeMsg[Potion::potionTypes];
         int buffs[Potion::potionTypes];
 
@@ -94,12 +118,11 @@ class Hero : public Living{
         std::vector<Spell*> spells;
 
 
-        
         int equip(int inventorySlot);
         
         int usePotion(int inventorySlot);
 
-
+        int inventoryAdd(Item *item);
 
         void printBuffs(void) const;
 
@@ -107,13 +130,19 @@ class Hero : public Living{
 
         void removeBuff(int buffType);
 
+        bool findSpell(Spell *spell);
 
-        static constexpr double regenRate = 0.05;
         void regeneration(void);
 
         void goUnconscious(void);
 
         void levelUp(void);
+
+        inline int getMoney(void){ return this->inventory->getMoney(); }
+
+        inline void addMoney(int money){ inventory->addMoney(money); }
+
+        inline void subMoney(int money){ inventory->subMoney(money); }
 
         inline void setExp(int newExp){ this->experience = newExp; }
 
@@ -129,6 +158,10 @@ class Hero : public Living{
           this->current.agi = agi;
         }
 
+        inline void addMaxMp(int points) { this->maxMp += points; }
+
+        inline void addMp(int points) //mp shouldn't be grater than maxHp
+        {this->mp= ((this->mp + points) > maxMp)? maxMp : (this->mp + points);}
 
         inline void subMp(int points) //mp shouldn't be less than 0
         { this->mp = ((this->mp  - points) < 0)? 0 : (this->mp  - points); }
@@ -157,9 +190,6 @@ class Hero : public Living{
         
         enum stats{strength, dexterity, agility};
 
-        inline void addMp(int points) //mp shouldn't be grater than maxHp
-        {this->mp= ((this->mp + points) > maxMp)? maxMp : (this->mp + points);}
-
         /* Constructor - Destructor */
         Hero(std::string name);
         virtual ~Hero() = 0;
@@ -171,7 +201,7 @@ class Hero : public Living{
         /* Override functions */
         int attack(Living *living) const override;
 
-        void revive(void);
+        void revive(bool getPenalty = true);
 
         int receiveDamage(int damage);
 
@@ -182,8 +212,6 @@ class Hero : public Living{
         bool checkInventory(bool equip = false, bool drinkPotion = false);
 
         void checkStats(void) const;
-
-        int inventoryAdd(Item *item);
 
         /* Descrease round of active buffs */
         void roundPass(void) override;
@@ -205,14 +233,15 @@ class Hero : public Living{
 
         inline int getSpellNum(void) const{return this->spells.size();}
 
-        inline int getMoney(void){ return this->inventory->getMoney(); }
+        void buy(Item *item);
 
-        inline void addMoney(int money){ inventory->addMoney(money); }
+        void buy(Spell *spell);
 
-        inline void subMoney(int money){ inventory->subMoney(money); }
-        
-        inline Item *dropItem(int inventorySlot)
-        {return inventory->popItem(inventorySlot);}
+        Item *sell(int inventorySlot);
+
+        void pickUp(Item *item);
+
+        void pickUp(int money);
 
         inline int getMp(void){ return this->mp; }
         inline int getMaxMp(void){ return this->maxMp; }     
@@ -256,6 +285,10 @@ class Paladin : public Hero{
 class Monster : public Living{
 
     private:
+        static const int startingDef = 10;
+        static const int startingDodge = 10;
+        static const int startingDmg = 30;
+        static const int damageRange = 50;
 
         struct dmg{ //Damage range 
             int lb; //Lower bound
@@ -325,10 +358,7 @@ class Monster : public Living{
                            : (current.dodge  - points); }
 
     public:
-        static const int startingDef = 10;
-        static const int startingDodge = 10;
-        static const int startingDmg = 30;
-        static const int damageRange = 50;
+
         /* Constructor - Destructor */
         Monster(std::string name);
         virtual ~Monster() = 0;
