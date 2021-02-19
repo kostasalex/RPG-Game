@@ -17,7 +17,23 @@ class Living{
         int level;
         int maxHp;      //Health Power
         int hp;
-    
+            
+        virtual void regeneration(void) = 0;
+
+        virtual void goUnconscious(void) = 0;
+
+    protected:
+        
+        inline void addHp(int points) //hp shouldn't be greater than maxHp
+        { this->hp = ((hp + points) > maxHp)? maxHp : (hp + points); }
+
+        inline void addMaxHp(int points) { this->maxHp += maxHp; }
+
+        inline void subHp(int points) //hp shouldn't be less than 0
+        { this->hp = ((hp - points) < 0)? 0 : (hp - points); }
+
+        inline void addLevel(int levels) { this->level += levels; }
+
     public:
         /* Constructor - Destructor */
         Living(std::string name);
@@ -45,15 +61,6 @@ class Living{
 
         inline int getHp(void) const { return this->hp; }
 
-        inline void addHp(int points) //hp shouldn't be greater than maxHp
-        { this->hp = ((hp + points) > maxHp)? maxHp : (hp + points); }
-
-        inline void subHp(int points) //hp shouldn't be less than 0
-        { this->hp = ((hp - points) < 0)? 0 : (hp - points); }
-
-        inline void addMaxHp(int points) { this->maxHp += maxHp; }
-
-        inline void addLevel(int levels) { this->level += levels; }
 
         
 
@@ -86,19 +93,29 @@ class Hero : public Living{
 
         std::vector<Spell*> spells;
 
-        void levelUp(void);
 
-        inline void setExp(int newExp){ this->experience = newExp; }
         
         int equip(int inventorySlot);
         
         int usePotion(int inventorySlot);
+
+
 
         void printBuffs(void) const;
 
         void addBuff(int buffType, int points);
 
         void removeBuff(int buffType);
+
+
+        static constexpr double regenRate = 0.05;
+        void regeneration(void);
+
+        void goUnconscious(void);
+
+        void levelUp(void);
+
+        inline void setExp(int newExp){ this->experience = newExp; }
 
         inline void subStats(int str, int dex, int agi){
           this->current.str -= str; 
@@ -153,6 +170,8 @@ class Hero : public Living{
 
         /* Override functions */
         int attack(Living *living) const override;
+
+        void revive(void);
 
         int receiveDamage(int damage);
 
@@ -258,40 +277,24 @@ class Monster : public Living{
         int deBuffs[Spell::spellTypes];
 
         void removeDeBuff(int deBuffType);
+
         void printDeBuffs(void) const;
 
-    public:
-        static const int startingDef = 10;
-        static const int startingDodge = 10;
-        static const int startingDmg = 30;
-        static const int damageRange = 50;
-        /* Constructor - Destructor */
-        Monster(std::string name);
-        virtual ~Monster() = 0;
+        void goUnconscious(void);
 
-        
-        /* Override functions */
-        void print(void) override;
-
-        int attack(Living *living) const override;
-
-        int receiveDamage(int damage) override;
-
-        void receiveDeBuff(int deBuffType, int points);
-
-        /* Descrease round of active buffs */
-        void roundPass(void) override;
-
+        static constexpr double regenRate = 0.03;
+        void regeneration(void);
+    protected:
         /* Inline functions */
         inline void addBaseDmg(int damage)
         {
             this->baseDmg.lb += damage;
-            this->baseDmg.ub = this->baseDmg.lb + damageRange;
+            this->baseDmg.ub += damage;
         }
         inline void addDmg(int damage)
         {
             this->currentDmg.lb += damage;
-            this->currentDmg.ub += this->currentDmg.lb + damageRange;
+            this->currentDmg.ub += damage;
         }
 
         inline void addStats(int defence, int dodge)
@@ -320,6 +323,29 @@ class Monster : public Living{
         inline void subDodge(int points)
         {current.dodge = ((current.dodge  - points) < 0)? 0 \
                            : (current.dodge  - points); }
+
+    public:
+        static const int startingDef = 10;
+        static const int startingDodge = 10;
+        static const int startingDmg = 30;
+        static const int damageRange = 50;
+        /* Constructor - Destructor */
+        Monster(std::string name);
+        virtual ~Monster() = 0;
+
+        
+        /* Override functions */
+        void print(void) override;
+
+        int attack(Living *living) const override;
+
+        int receiveDamage(int damage) override;
+
+        void receiveDeBuff(int deBuffType, int points);
+
+        /* Descrease round of active buffs */
+        void roundPass(void) override;
+
         /*inline void getBaseDmg(int &lb, int &ub)
         { lb = this->currentDmg.lb; ub = this->currentDmg.ub; }
         inline void getDmg(int &lb, int &ub)

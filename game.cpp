@@ -293,7 +293,7 @@ void Game::shop(Hero *hero){
         
         cout << "1. Buy " << endl
              << "2. Sell" << endl
-             << "3. Exit" << endl
+             << "3. Exit store" << endl
              <<">";
 
         while(inputHandler(select,&options[1], 3) == false);
@@ -315,7 +315,7 @@ void Game::shop(Hero *hero){
                   << "2. Spell" << endl
                   << "3. Potion" << endl
                   << "4. Go back" << endl
-                  << "5. Exit" << endl
+                  << "5. Exit store" << endl
                   << ">" ;
 
               while(inputHandler(select, options, 6) == false);
@@ -416,9 +416,6 @@ void Game::shop(Hero *hero){
 }
 
 
-/*void Game::combat(){
-  cout << "enter combat mode" << endl;
-}*/
 
 
 void Game::setGameState(int blockType){
@@ -687,10 +684,11 @@ void Combat::fight(void){
     cout << endl;
 
     cout 
-    << "++++++++++++++++++++ Regeneration +++++++++++++++++++++++++++++"
+    << "____________________End of round " 
+    << this->round <<                      "___________________________"
     << endl;
 
-    regeneration();
+    endOfRound();
 
   }
   cout << "Fight ended! " << endl;
@@ -930,8 +928,6 @@ void Combat::monstersTurn(void){
     cout << endl;
     sleep(1);
   }
-
-  this->round++;
 }
 
 
@@ -947,39 +943,17 @@ int Combat::getRandTarget(void){
 }
 
 
-void Combat::regeneration(){
+void Combat::endOfRound(){
 
-  double regenRate = 0.05;
+  this->round++;
 
   for(int i = 0; i < this->heroesNum; i++){
     heroes[i]->roundPass();
-    if(this->heroes[i]->getHp() != 0){
-      cout << heroes[i]->getName() << " hp regen: "
-           << this->heroes[i]->getHp() << "-->";
-
-      heroes[i]->addHp(this->heroes[i]->getMaxHp()*regenRate);
-      cout << this->heroes[i]->getHp() << endl;
-
-      cout << "mp regen: " << this->heroes[i]->getMp() << "-->";
-
-      heroes[i]->addMp(this->heroes[i]->getMaxMp()*regenRate);
-      cout << this->heroes[i]->getMp() << endl << endl;
-    }
-    else  cout << heroes[i]->getName() << " hp: Unconscious!" << endl << endl;
   }
 
   for(int i = 0; i < this->monstersNum; i++){
     monsters[i]->roundPass();
-    if(this->monsters[i]->getHp() != 0){
-      cout << monsters[i]->getName() << " hp regen: "
-           << this->monsters[i]->getHp() << "-->";
-
-      monsters[i]->addHp(this->monsters[i]->getMaxHp()*regenRate);
-      cout << this->monsters[i]->getHp() << endl << endl;
-    }
-    else  cout << monsters[i]->getName() << " hp: Unconscious!" << endl << endl;
   }
-
 }
 
 
@@ -1074,13 +1048,7 @@ int Combat::gainExp(int heroLvl)
 void Combat::reviveHeroes(void){
 
   for(int i = 0; i < this->heroesNum; i++){
-
-    cout << heroes[i]->getName() << " hp: "
-          << this->heroes[i]->getHp() << "-->";
-    heroes[i]->addHp(heroes[i]->getMaxHp()/2);
-    cout << this->heroes[i]->getHp() << endl << endl;
-
-
+    if(heroes[i]->getHp() == 0)heroes[i]->revive();
   }
 
 }

@@ -95,8 +95,8 @@ int Hero::castSpell(int spellId, Living *living) {
 
             this->subMp(spell->getMp());
 
-            //If damage received cast debuff
-            if(living->receiveDamage(damage) != 0){
+            //If damage received and it's still alive cast debuff
+            if(living->receiveDamage(damage) != 0 && living->getHp()!=0 ){
                 Monster *monster = (Monster*)living;
                 monster->receiveDeBuff(targetStat, points);
             }
@@ -151,7 +151,7 @@ int Hero::receiveDamage(int damage){
         } 
     }
 
-    if(this->getHp() == 0) cout << " Fell into a state of unconsciousness!!" << endl;
+    if(this->getHp() == 0)goUnconscious();
 
     return damageDealt;
 
@@ -180,6 +180,57 @@ void Hero::receiveExperience(int exp){
     }
 
     setExp(result);
+
+}
+
+
+void Hero::revive(void){
+
+    //Can't revive a living one..
+    if(getHp() != 0){
+        cout << getName() << " isn't unconscious" << endl;
+        return;
+    }
+    int restoreLife = getMaxHp() / 2;
+
+    cout << getName() << " revived!!" << endl
+         << "Restored hp: " << getHp() << " --> ";
+    this->addHp(restoreLife);
+    cout << getHp() << endl;
+}
+
+
+
+void Hero::goUnconscious(void){
+    cout << getName() 
+         << " Fell into a state of unconsciousness!!" << endl;
+
+    for(int i = 0; i < Potion::potionTypes; i++){
+        if(buffs[i] != 0){
+            buffs[i] = 0;
+            removeBuff(i);
+        }
+    }
+}
+
+
+
+void Hero::regeneration(void){
+
+    if(getHp() != 0){
+      cout << getName() << " regeneration ++ " << endl
+           << "hp regen: "
+           << getHp() << "-->";
+
+      addHp(getMaxHp()*regenRate);
+      cout << getHp() << endl;
+
+      cout << "mp regen: " << getMp() << "-->";
+
+      addMp(getMaxMp()*regenRate);
+      cout << getMp() << endl << endl;
+    }
+    else  cout << getName() << " is Unconscious!" << endl << endl;
 
 }
 
@@ -375,6 +426,8 @@ void Hero::printBuffs(void) const{
 
 void Hero::roundPass(void){
 
+    regeneration();
+
     for(int i = 0; i < Potion::potionTypes; i++){
         if(buffs[i] > 0){
             buffs[i]--;
@@ -418,6 +471,7 @@ void Hero::addBuff(int buffType, int points){
 
 }
 
+
 void Hero::removeBuff(int buffType){
 
     if(buffType < 0 || buffType > Potion::potionTypes){
@@ -425,20 +479,25 @@ void Hero::removeBuff(int buffType){
         return;
     }
 
-        switch(buffType){
-            case strength:
-                this->current.str =  this->base.str;
-                break;
-            case dexterity:
-                this->current.dex =  this->base.dex; 
-                break;
-            case agility:
-                this->current.agi =  this->base.agi;
-                break;
-        }
-
     cout << buffTypeMsg[buffType] << " worn off!!" << endl;
-    
+
+    switch(buffType){
+        case strength:
+            cout << "strength: " << this->current.str
+            << " --> " << this->base.str << endl;
+            this->current.str =  this->base.str;
+            break;
+        case dexterity:
+            cout << "strength: " << this->current.str
+            << " --> " << this->base.str << endl;
+            this->current.dex =  this->base.dex; 
+            break;
+        case agility:
+            cout << "strength: " << this->current.str
+            << " --> " << this->base.str << endl;
+            this->current.agi =  this->base.agi;
+            break;
+    }
 }
 
 
@@ -565,8 +624,7 @@ int Monster::receiveDamage(int damage){
         } 
     }
 
-    if(this->getHp() == 0) cout << "Fell into a state of unconsciousness!!"
-                    << endl << endl;
+    if(this->getHp() == 0)goUnconscious();
 
     return damageDealt;
 }
@@ -592,7 +650,38 @@ void Monster::printDeBuffs(void) const{
 }
 
 
+void Monster::goUnconscious(void){
+    cout << getName() 
+         << " Fell into a state of unconsciousness!!" << endl;
+
+    for(int i = 0; i < Spell::spellTypes; i++){
+        if(deBuffs[i] != 0){
+            deBuffs[i] = 0;
+            removeDeBuff(i);
+        }
+    }
+}
+
+
+
+void Monster::regeneration(void){
+
+    if(getHp() != 0){
+      cout << getName() << " regeneration ++ " << endl
+           << "hp regen: "
+           << getHp() << "-->";
+
+      addHp(getMaxHp()*regenRate);
+      cout << getHp() << endl;
+    }
+    else  cout << getName() << " is Unconscious!" << endl << endl;
+
+}
+
+
 void Monster::roundPass(void){
+
+    regeneration();
 
     for(int i = 0; i < Spell::spellTypes; i++){
         if(deBuffs[i] > 0){
@@ -602,6 +691,7 @@ void Monster::roundPass(void){
             }
         }
     }
+
 }
 
 
@@ -645,21 +735,30 @@ void Monster::removeDeBuff(int deBuffType){
         return;
     }
 
+    cout << deBuffTypeMsg[deBuffType] << " worn off!!" << endl;
 
     switch(deBuffType){
         case Spell::damage:
+            cout << "damage: " << this->currentDmg.lb 
+            << " - " << this->currentDmg.ub
+            << " --> ";
             this->currentDmg = this->baseDmg;
+            cout << this->currentDmg.lb 
+            << " - " << this->currentDmg.ub << endl;
             break;
         case Spell::defence:
+            cout << "defence: " << this->current.defence
+            << " - " << " --> ";
             this->current.defence = this->base.defence;
+            cout << this->current.defence << endl;
             break;
         case Spell::dodge:
+            cout << "dodge: " << this->current.dodge
+            << " - " << " --> ";
             this->current.dodge = this->base.dodge;
+            cout << this->current.dodge << endl;
             break;
     }
-
-
-    cout << deBuffTypeMsg[deBuffType] << " worn off!!" << endl;
     
 }
 

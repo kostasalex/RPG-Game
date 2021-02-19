@@ -98,9 +98,10 @@ class Combat{
         void heroesTurn(void);
 
         void monstersTurn(void);
+
         int getRandTarget(void);
 
-        void regeneration(void);
+        void endOfRound(void);
 
         enum resutl{ stillFighting, heroesWon, monstersWon};
         int fightResult(void);
