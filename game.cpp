@@ -109,11 +109,11 @@ Game::Game(){
         break;
       
       case 2:
-        hero = new Paladin(name);
+        hero = new Sorcerer(name);
         break;
 
       case 3:
-        hero = new Sorcerer(name);
+        hero = new Paladin(name);
         break;
     }
     this->heroes.push_back(hero);
@@ -401,7 +401,7 @@ void Game::shop(Hero *hero){
 
 
 void Game::setGameState(int blockType){
-  cout << "Blocktype: " << blockType << endl;
+
   switch(blockType){
 
     case Grid::common:
@@ -847,13 +847,13 @@ void Combat::heroesTurn(void){
               
               cout << endl;
               if(heroes[heroIndex]->castSpell(spellIndex, monsters[monsterIndex])\
-               != Hero::succeed)continue;
+               == false)continue; //Go back
             }
             else if(select == 3){
               monsters[monsterIndex]->print();
               continue;
             }
-            //If hero use spell or attack , 
+            //If hero use spell, attack , equip weapon/armor, drink potion 
             //his turn is ended for the current round
             availableHeroes[heroIndex]++;
           }//>>Menu 3
@@ -876,11 +876,16 @@ void Combat::heroesTurn(void){
 void Combat::monstersTurn(void){
 
   int target;
+  bool stillAlive = false;
 
   for(int i = 0; i < this->monstersNum; i++){
 
     if(monsters[i]->getHp() == 0)continue;
 
+    for(int i = 0; i < this->heroesNum; i++)
+      if(heroes[i]->getHp() != 0)stillAlive = true;
+
+    if(stillAlive == false) return;
     target = getRandTarget();
     
     cout << this->monsters[i]->getName()

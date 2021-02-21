@@ -3,44 +3,34 @@
 #include "living.h"
 #include "spell.h"
 #include "utils.h"
+#include "buff.h"
 
 using namespace std;
 
+
+const string Hero::statsTypeMsg[3] = 
+{"strength", "dexterity", "agility"};
+
 /* Base class *Living* implementation*/
-
-string Hero::statusMsg[4] = {"succeed", "notFound", "higherLevel", "wrongType"};
-const string Hero::buffTypeMsg[Potion::potionTypes] =
-    {"Power boost", "Magic boost", "Dodge boost"};
-
-const string Monster::deBuffTypeMsg[Spell::spellTypes] = 
-    {"Power curse", "Defence curse", "Dodge curse"};
-
 Living::Living(string name)
 { 
-    //*Debug
-    cout << "Creating a Living..!" << endl;
     this->name = name;
     this->level = startingLevel;
     this->hp = this->maxHp = startingHp; 
 }
 
 Living::~Living(){
-    //*Debug
-    cout << "A living to be destroyed" << endl;
 }
 
 
 /* Subclass of Living -> *Hero* implementation */
-
 Hero::Hero(string name) : Living(name){
-    //*Debug
-    cout << "Becoming a Hero..!" << endl;
 
     /* Init strength, dexterity, agility */
     this->current = 
     this->base = {startingStr, startingDex, startingAgi};
 
-    this->buffs[Potion::potionTypes] = {};
+    buffCounter = 0;
 
     maxMp = mp = startingMp;
     experience = startingExperience;
@@ -53,14 +43,14 @@ Hero::Hero(string name) : Living(name){
 
     int money = startingMoney;
     this->inventory = new Inventory(weapon, armor, money);
-
-
 }
+
 
 Hero::~Hero(){
-    //*Debug
-    cout << "A Hero to be destroyed" << endl; 
+    for(int i = 0; i < buffCounter; i++)
+        delete buffs[i];
 }
+
 
 
 bool Hero::learnSpell(Spell *spell){
@@ -75,7 +65,7 @@ bool Hero::learnSpell(Spell *spell){
 }
 
 
-int Hero::castSpell(int spellId, Living *living) {
+bool Hero::castSpell(int spellId, Living *living) {
 
 
     if(spellId < (int)this->spells.size()){
@@ -83,30 +73,31 @@ int Hero::castSpell(int spellId, Living *living) {
 
         if(spell->getMp() > this->mp){
             cout << "Not enough mp!" << endl;
-            return -1;
+            return false;
         }
         else{
             cout << this->getName() << " casting "
                  << spell->getName() << " to " 
                  << living->getName() << endl;
 
-            int targetStat, points, damage;
-            spell->cast(this->dexterity, targetStat, points, damage);
+            int damage;
+            Buff *deBuff = spell->cast(this->current.dex, damage);
 
             this->subMp(spell->getMp());
 
             //If damage received and it's still alive cast debuff
             if(living->receiveDamage(damage) != 0 && living->getHp()!= 0 ){
                 Monster *monster = (Monster*)living;
-                monster->receiveDeBuff(targetStat, points);
+                monster->receiveDeBuff(deBuff);
             }
+            else delete deBuff;
         }
     }
     else {
         cout << "Spell not found!" << endl;
-        return notFound;
+        return false;
     }
-    return succeed;
+    return true;
 }
 
 
@@ -118,12 +109,11 @@ int Hero::attack(Living *living) const{
     if(weapon == nullptr)totalDmg = 0;
     else totalDmg = weapon->getDamage();
 
-    totalDmg +=(this->strength / 100.0) * totalDmg; 
+    totalDmg += (this->current.str / 100.0) * totalDmg; 
     cout << this->getName() << " attacks " <<
         living->getName() << endl;
     
     living->receiveDamage(totalDmg);
-
     return totalDmg;
 
 }
@@ -208,12 +198,9 @@ void Hero::revive(bool getPenalty){
 
 void Hero::goUnconscious(void){
     cout << "Fell into a state  of unconsciousness!!" << endl;
-
-    for(int i = 0; i < Potion::potionTypes; i++){
-        if(buffs[i] != 0){
-            buffs[i] = 0;
+    int counter = buffCounter;
+    for(int i = 0; i < counter; i++){
             removeBuff(i);
-        }
     }
 }
 
@@ -317,6 +304,7 @@ void Hero::buy(Item *item){
             if(getLevel() >= item->getLevel()){
                 subMoney(item->getPrice());
                 cout << item->getName() << " successfully purchased!!" << endl; 
+                inventoryAdd(item);
             }
             else cout << item->getName() << " requires level "
                       << item->getLevel() << endl;
@@ -497,7 +485,7 @@ int Hero::usePotion(int inventorySlot){
     if(result == succeed){
         inventory->popItem(inventorySlot);
         Potion* potion = (Potion*)item;
-        addBuff(potion->getStat(), potion->getPoints());
+        addBuff(potion->drink());
         //delete inventory->popItem(inventorySlot);
     }
 
@@ -507,21 +495,14 @@ int Hero::usePotion(int inventorySlot){
 
 
 void Hero::printBuffs(void) const{
-    bool buffExist = false;
 
-    for(int i = 0; i < Potion::potionTypes; i++)
-        if(buffs[i] != 0)buffExist = true;
-
-    if(buffExist == true){
+    if(buffCounter > 0){
         cout << "*Active buffs: ";
-        for(int i = 0; i < Potion::potionTypes; i++){
-            if(buffs[i] != 0){
-                cout << "# "  << buffTypeMsg[i] << " || "
-                     <<"Rounds remain: " << buffs[i] << " # ";
-            } 
+        for(int i = 0; i < buffCounter; i++){
+            cout << "# "  << buffs[i]->getName() << " || "
+                    <<"Rounds remain: " << buffs[i]->getRounds() << " # ";
         }
         cout << endl;
-            
     }
 }
 
@@ -529,30 +510,41 @@ void Hero::printBuffs(void) const{
 void Hero::roundPass(void){
 
     regeneration();
-
-    for(int i = 0; i < Potion::potionTypes; i++){
-        if(buffs[i] > 0){
-            buffs[i]--;
-            if(buffs[i] == 0){
-                removeBuff(i);
-            }
-        }
+    int counter = buffCounter;
+    for(int i = 0; i < counter; i++){
+        if(buffs[i]->roundPass() == 0){
+            removeBuff(i);
+        }     
     }
 }
 
 
+int Hero::findBuff(Buff *buff){
+    for(int i = 0; i < buffCounter; i++)
+        if(buffs[i]->isTheSame(buff))return i;
 
-void Hero::addBuff(int buffType, int points){
+    return -1;
+}
 
-    if(buffType < 0 || buffType > Potion::potionTypes){
-        cout << "Couldn't add buff.. Invalid buffType" << endl;
-        return;
+
+void Hero::addBuff(Buff *buff){
+
+    if(buff == nullptr){
+        cout << "Couldn't add buff\n";
     }
 
-    cout << "Buff " << buffTypeMsg[buffType];
-    if(this->buffs[buffType] == 0){
+    cout << "Buff " << buff->getName();
+    int buffSlot = findBuff(buff);
+
+    if(findBuff(buff) == -1){
+        /*If buff slots are full, remove the 1st buff */
+        if(buffCounter == maxBuffs){
+            removeBuff(0);
+        }
+
         cout << " activated!!" << endl;
-        switch(buffType){
+        int points = buff->getPoints();
+        switch(buff->getStat()){
             case strength:
                 this->addStats(points, 0, 0);
                 break;
@@ -564,43 +556,49 @@ void Hero::addBuff(int buffType, int points){
                 break;
         }
         cout << "successfully inscreased " << points
-             << " points of " << Potion::statsTypeMsg[buffType] << endl;
+             << " points of " << statsTypeMsg[buff->getStat()] << endl;
+
+        buffSlot = this->buffCounter;
+        this->buffCounter++;
     }
-    else{/*If buff allready exist , don't add more points to stat affected*/
+    else{/*If buff allready exist , delete it and add the new one */
         cout << " renewed!!" << endl;
+        delete buffs[buffSlot];
     }
 
-    this->buffs[buffType] = buffRounds;
-
+    buffs[buffSlot] = buff;
 }
 
 
-void Hero::removeBuff(int buffType){
+void Hero::removeBuff(int buffSlot){
 
-    if(buffType < 0 || buffType > Potion::potionTypes){
-        cout << "Couldn't remove buff.. Invalid buffType" << endl;
-        return;
-    }
+    cout << buffs[buffSlot]->getName() << " worn off!!" << endl;
 
-    cout << buffTypeMsg[buffType] << " worn off!!" << endl;
-
-    switch(buffType){
+    switch(buffs[buffSlot]->getStat()){
         case strength:
             cout << "strength: " << this->current.str
             << " --> " << this->base.str << endl;
             this->current.str =  this->base.str;
             break;
         case dexterity:
-            cout << "strength: " << this->current.str
-            << " --> " << this->base.str << endl;
+            cout << "dexterity: " << this->current.dex
+            << " --> " << this->base.dex << endl;
             this->current.dex =  this->base.dex; 
             break;
         case agility:
-            cout << "strength: " << this->current.str
-            << " --> " << this->base.str << endl;
+            cout << "agility: " << this->current.agi
+            << " --> " << this->base.agi << endl;
             this->current.agi =  this->base.agi;
             break;
     }
+
+    delete buffs[buffSlot];
+
+    //Move all buffs one slot left
+    for(int i = buffSlot; i < buffCounter-1; i++){
+        buffs[i] = buffs[i+1];
+    }
+    buffCounter--;
 }
 
 
@@ -616,6 +614,7 @@ void Hero::print(void){
     << ">> Agility: "  << this->current.agi  << endl << endl;
     this->checkInventory();
     this->checkSpells();
+    this->printBuffs();
 }
 
 
@@ -623,7 +622,7 @@ void Hero::print(void){
 
 Warrior::Warrior(string name) : Hero(name){
     //*Debug
-    cout << "Becoming a warrior..!" << endl;
+    cout << "Warrior " << name << " successfully created!!\n";
     //Inscrease strength and agility
     addBaseStats(additionalStr,0,additionalAgi);
     addStats(additionalStr,0,additionalAgi);
@@ -631,8 +630,6 @@ Warrior::Warrior(string name) : Hero(name){
 }
 
 Warrior::~Warrior(){
-    //*Debug
-    cout << "A warrior to be destroyed " << endl;
 }
 
 
@@ -640,7 +637,7 @@ Warrior::~Warrior(){
 
 Sorcerer::Sorcerer(string name) : Hero(name){
     //*Debug
-    cout << "Becoming a sorcerer..!" << endl;
+    cout << "Sorcerer " << name << " successfully created!!\n";
     //Inscrease dexterity and agility
     addBaseStats(0,additionalDex,additionalAgi);
     addStats(0,additionalDex,additionalAgi);
@@ -648,8 +645,6 @@ Sorcerer::Sorcerer(string name) : Hero(name){
 }
 
 Sorcerer::~Sorcerer(){
-    //*Debug
-    cout << "A sorcerer to be destroyed " << endl;
 }
 
 
@@ -657,7 +652,7 @@ Sorcerer::~Sorcerer(){
 
 Paladin::Paladin(string name) : Hero(name){
     //*Debug
-    cout << "Becoming a paladin..!" << endl;
+    cout << "Paladin " << name << " successfully created!!\n";
     //Inscrease strength and dexterity
     addBaseStats(additionalStr,additionalDex,0);
     addStats(additionalStr,additionalDex,0);
@@ -665,8 +660,6 @@ Paladin::Paladin(string name) : Hero(name){
 }
 
 Paladin::~Paladin(){    
-    //*Debug
-    cout << "A paladin to be destroyed " << endl;
 }
 
 
@@ -683,11 +676,13 @@ Monster::Monster(string name) : Living(name){
     //Init stats: defence dodge
     base = current = {startingDef, startingDodge};
 
+    deBuffCounter = 0;
+
 }
 
 Monster::~Monster(){
-    //*Debug
-    cout << "A monster to be destroyed " << endl;
+    for(int i = 0; i < deBuffCounter; i++)
+        delete deBuffs[i];
 }
 
 
@@ -734,18 +729,13 @@ int Monster::receiveDamage(int damage){
 
 
 void Monster::printDeBuffs(void) const{
-    bool buffExist = false;
 
-    for(int i = 0; i < Spell::spellTypes; i++)
-        if(deBuffs[i] != 0)buffExist = true;
-
-    if(buffExist == true){
+    if(deBuffCounter > 0){
         cout << "*Active debuffs: ";
-        for(int i = 0; i < Potion::potionTypes; i++){
-            if(deBuffs[i] != 0){
-                cout << "# "  << deBuffTypeMsg[i] << " || "
-                     <<"Rounds remain: " << deBuffs[i] << " # ";
-            } 
+        for(int i = 0; i < deBuffCounter; i++){
+            cout << "# "  << deBuffs[i]->getName() << " || "
+                    <<"Rounds remain: " << deBuffs[i]->getRounds() << " # ";
+
         }
         cout << endl;
             
@@ -757,11 +747,9 @@ void Monster::goUnconscious(void){
     cout << getName() 
          << " Fell into a state of unconsciousness!!" << endl;
 
-    for(int i = 0; i < Spell::spellTypes; i++){
-        if(deBuffs[i] != 0){
-            deBuffs[i] = 0;
+    int counter = deBuffCounter;
+    for(int i = 0; i < counter; i++){
             removeDeBuff(i);
-        }
     }
 }
 
@@ -785,30 +773,44 @@ void Monster::regeneration(void){
 void Monster::roundPass(void){
 
     regeneration();
-
-    for(int i = 0; i < Spell::spellTypes; i++){
-        if(deBuffs[i] > 0){
-            deBuffs[i]--;
-            if(deBuffs[i] == 0){
-                removeDeBuff(i);
-            }
-        }
+    int counter = deBuffCounter;
+    for(int i = 0; i < counter; i++){
+        if(deBuffs[i]->roundPass() == 0){
+            removeDeBuff(i);
+        }     
     }
-
 }
 
 
-void Monster::receiveDeBuff(int deBuffType, int points){
+int Monster::findDeBuff(Buff *deBuff){
+    for(int i = 0; i < deBuffCounter; i++)
+        if(deBuffs[i]->isTheSame(deBuff))return i;
 
-    if(deBuffType < 0 || deBuffType > Spell::spellTypes){
-        cout << "Couldn't add deBuff.. Invalid buffType" << endl;
-        return;
+    return -1;
+}
+
+
+void Monster::receiveDeBuff(Buff *deBuff){
+    
+    if(deBuff == nullptr){
+        cout << "Couldn't add debuff\n";
     }
 
-    cout << "DeBuff " << deBuffTypeMsg[deBuffType];
-    if(this->deBuffs[deBuffType] == 0){
+
+    cout << "DeBuff " << deBuff->getName();
+    int deBuffSlot = findDeBuff(deBuff);
+
+    if(findDeBuff(deBuff) == -1){
+        /*If debuff slots are full, remove the 1st debuff */
+        if(deBuffCounter == maxDeBuffs){
+            removeDeBuff(0);
+        }
+
         cout << " activated!!" << endl;
-        switch(deBuffType){
+
+        cout << " activated!!" << endl;
+        int points = deBuff->getPoints();
+        switch(deBuff->getStat()){
             case Spell::damage:
                 subDmg(points);
                 break;
@@ -819,28 +821,29 @@ void Monster::receiveDeBuff(int deBuffType, int points){
                 subDodge(points);
                 break;
         }
+
         cout << "successfully descreased " << points
-             << " points of " << Spell::statMsg[deBuffType] << endl;
+             << " points of " << Spell::statMsg[deBuff->getStat()] << endl;
+
+        deBuffSlot = this->deBuffCounter;
+        this->deBuffCounter++;
     }
-    else{/*If buff allready exist , don't add more points to stat affected*/
+    else{/*If debuff allready exist , don't add more points to stat affected*/
         cout << " renewed!!" << endl;
+        delete deBuffs[deBuffSlot];
     }
 
-    this->deBuffs[deBuffType] = deBuffRounds;
+    deBuffs[deBuffSlot] = deBuff;
 
 }
 
 
-void Monster::removeDeBuff(int deBuffType){
+void Monster::removeDeBuff(int deBuffSlot){
 
-    if(deBuffType < 0 || deBuffType > Spell::spellTypes){
-        cout << "Couldn't remove debuff.. Invalid debuff type" << endl;
-        return;
-    }
 
-    cout << deBuffTypeMsg[deBuffType] << " worn off!!" << endl;
+    cout << deBuffs[deBuffSlot]->getName() << " worn off!!" << endl;
 
-    switch(deBuffType){
+    switch(deBuffs[deBuffSlot]->getStat()){
         case Spell::damage:
             cout << "damage: " << this->currentDmg.lb 
             << " - " << this->currentDmg.ub
@@ -862,6 +865,13 @@ void Monster::removeDeBuff(int deBuffType){
             cout << this->current.dodge << endl;
             break;
     }
+    delete deBuffs[deBuffSlot];
+
+    //Move all buffs one slot left
+    for(int i = deBuffSlot; i < deBuffCounter-1; i++){
+        deBuffs[i] = deBuffs[i+1];
+    }
+    deBuffCounter--;
     
 }
 

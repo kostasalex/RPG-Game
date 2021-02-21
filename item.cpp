@@ -1,8 +1,9 @@
 #include "item.h"
+#include "buff.h"
 
 using namespace std;
-const string Potion::statsTypeMsg[3] = {"strength", "dexterity", "agility"};
-const string Item::itemTypeMsg[3] = {"weapon", "armor", "potion"};
+const string Item::itemTypeMsg[3] = 
+{"weapon", "armor", "potion"};
 /* Base class *Item* implementation */
 
 Item::Item(string name, int price, int requiredLevel, int type)
@@ -31,6 +32,7 @@ Item(name, price, requiredLevel, potion)
 {
     this->stat = stat;
     this->points = points;
+    this->rounds = (requiredLevel/2) + buffRounds;
 
     //*Debug
     print();
@@ -45,13 +47,21 @@ Potion::~Potion(){
 
 }
 
+
+const string Potion::buffNames[3] =
+    {"Power boost", "Magic boost", "Dodge boost"};
+    
+Buff *Potion::drink(void){
+    return new Buff(buffNames[stat], rounds, stat, points);
+}
+
+
 void Potion::print() const{
     
     cout << "Potion: " << getName() << endl
-         << "Adding " << points << " points to " <<statsTypeMsg[stat] << endl 
+         << "Adding " << points << " points to " << stat << endl 
          << "Required level: " << getLevel() << endl
          << "Price: " << getPrice() << endl;
-
 }
 
 
@@ -193,11 +203,11 @@ Item* Inventory::getItem(int inventorySlot){
 
 int Inventory::addItem(Item *item){
 
-    if(item == NULL)return notFound;
+    if(item == NULL)return false;
 
     items.push_back(item);
 
-    return succeed;
+    return true;
 }
 
 

@@ -1,14 +1,17 @@
 #include <time.h>    
 #include "spell.h"
+#include "buff.h"
 
 using namespace std;
 
-int Spell::ub_damage = 50; 
 
 string Spell::statMsg[3] = {"damage", "defence", "dodge"};
 
+const string Spell::deBuffNames[Spell::spellTypes] = 
+    {"Power curse", "Defence curse", "Dodge curse"};
+
 Spell::Spell(string name, int lb_damage, int pointsAffect, \
-        int price, int requiredLevel, int mpCost){
+        int price, int requiredLevel, int mpCost, int stat){
     
     this->name = name;
     this->dmg.lb = lb_damage;
@@ -17,7 +20,8 @@ Spell::Spell(string name, int lb_damage, int pointsAffect, \
     this->price = price;
     this->requiredLevel = requiredLevel;
     this->mpCost = mpCost;
-
+    this->rounds = (requiredLevel/2) + deBuffRounds;
+    this->targetStat = stat;
     //*Debug
     cout << "A new spell constructed " << endl;
 
@@ -33,7 +37,7 @@ Spell::~Spell ()
 
 IceSpell::IceSpell(string name, int lb_damage, int pointsAffect, int price, \
     int requiredLevel, int mpCost): 
-    Spell(name, lb_damage, pointsAffect, price, requiredLevel, mpCost)
+    Spell(name, lb_damage, pointsAffect, price, requiredLevel, mpCost, damage)
 {
     //*Debug
     cout << "IceSpell created !" << endl; 
@@ -60,20 +64,21 @@ void IceSpell::print(void) {
 }
 
 
-void IceSpell::cast(int dexterity, int &targetStat, int &points,  int &damage){
+Buff* IceSpell::cast(int dexterity, int &damage){
 
     cout << "IceSpell casted!" << endl;
-    targetStat = this->damage;
-    points = this->getPoints();
+    
     damage = this->getDamage(dexterity);
 
+    return new Buff(deBuffNames[statAffect::damage],\
+    getRounds(), getStat(), getPoints());    
 }
 
 
 
 FireSpell::FireSpell(string name, int lb_damage, int pointsAffect, int price, \
     int requiredLevel, int mpCost):
-     Spell(name, lb_damage, pointsAffect, price, requiredLevel, mpCost)
+     Spell(name, lb_damage, pointsAffect, price, requiredLevel, mpCost, defence)
 {
     //*Debug
     cout << "FireSpell created !" << endl; 
@@ -100,12 +105,14 @@ void FireSpell::print(void) {
 }
 
 
-void FireSpell::cast(int dexterity, int &targetStat, int &points,  int &damage){
+struct Buff* FireSpell::cast(int dexterity, int &damage){
 
     cout << "FireSpell casted!" << endl;
-    targetStat = this->defence;
-    points = this->getPoints();
+    
     damage = this->getDamage(dexterity);
+
+    return new Buff(deBuffNames[statAffect::defence],\
+    getRounds(), getStat(), getPoints());  
 
 }
 
@@ -113,7 +120,7 @@ void FireSpell::cast(int dexterity, int &targetStat, int &points,  int &damage){
 
 LightingSpell::LightingSpell(string name, int lb_damage, int pointsAffect, int price, \
     int requiredLevel, int mpCost): 
-    Spell(name, lb_damage, pointsAffect, price, requiredLevel, mpCost)
+    Spell(name, lb_damage, pointsAffect, price, requiredLevel, mpCost, dodge)
 {
     //*Debug
     cout << "LightingSpell created !" << endl; 
@@ -141,11 +148,12 @@ void LightingSpell::print(void) {
 }
 
 
-void LightingSpell::cast(int dexterity, int &targetStat, int &points,  int &damage){
+struct Buff* LightingSpell::cast(int dexterity, int &damage){
 
     cout << "LightingSpell casted!" << endl;
-    targetStat = this->dodge;
-    points = this->getPoints();
+    
     damage = this->getDamage(dexterity);
 
+    return new Buff(deBuffNames[statAffect::dodge],\
+    getRounds(), getStat(), getPoints());  
 }
