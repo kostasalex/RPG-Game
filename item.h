@@ -19,10 +19,8 @@ class Item{
 
 
     public:
-        enum itemTypes{weapon, armor, potion};
-        static const std::string itemTypeMsg[3];
         /* Constructor - Destructor */
-        Item(std::string name, int price, int requiredLevel, int type);
+        Item(std::string name, int price, int requiredLevel);
         virtual ~Item() = 0;
 
 
@@ -35,9 +33,6 @@ class Item{
         inline int getLevel(void) const { return this->requiredLevel; }
 
         inline std::string getName(void) const { return this->name; }       
-
-        inline int getType(void) const { return this->type; }  
-
 
 };
 
@@ -141,8 +136,7 @@ class Inventory{
         void disarmWeapon(void);
         void disarmArmor(void);
 
-        /* Return status when trying to equip item */
-        enum equip{succeed, notFound, higherLevel, wrongType};
+
     public:
 
         Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money);
@@ -151,8 +145,8 @@ class Inventory{
         void print(void) const;
 
         /* Check if object is the valid type before use these functions */
-        int equipWeapon(Weapon *weapon);
-        int equipArmor(Armor *armor);
+        bool equipWeapon(Weapon *weapon);
+        bool equipArmor(Armor *armor);
         
         Item* popItem(int inventorySlot);
         Item *getItem(int inventorySlot);
