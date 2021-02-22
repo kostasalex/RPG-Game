@@ -424,12 +424,12 @@ Market::Market(){
   this->productCounter[weapon] = 6;
   this->weapons = new Weapon *[productCounter[weapon]];
 
-  this->weapons[0] = new Weapon("Iron Slasher", 250, 200, 3);
-  this->weapons[1] = new Weapon("Iron Sword", 200, 180, 3);
-  this->weapons[2] = new Weapon("Iron Staff", 180, 150, 3);
-  this->weapons[3] = new Weapon("Silver Slasher", 350, 500, 6);
-  this->weapons[4] = new Weapon("Silver Sword", 300, 450, 6);
-  this->weapons[5] = new Weapon("Silver Staff", 280, 420, 6);
+  this->weapons[0] = new Weapon("Iron Slasher", 250, 200, 3, Weapon::twoHanded);
+  this->weapons[1] = new Weapon("Iron Sword", 200, 180, 3, Weapon::oneHanded);
+  this->weapons[2] = new Weapon("Iron Staff", 180, 150, 3, Weapon::oneHanded);
+  this->weapons[3] = new Weapon("Silver Slasher", 350, 500, 6, Weapon::twoHanded);
+  this->weapons[4] = new Weapon("Silver Sword", 300, 450, 6, Weapon::oneHanded);
+  this->weapons[5] = new Weapon("Silver Staff", 280, 420, 6, Weapon::oneHanded);
 
   this->productCounter[armor] = 2;
   this->armors = new Armor *[productCounter[armor]];
@@ -985,7 +985,7 @@ Item* Combat::gainItem(){
   Item *item = nullptr;
 
   if(rand() % 50 == 1){
-    item = new Weapon("Power Sword", 220, 400, 1);
+    item = new Weapon("Power Sword", 220, 400, 1, Weapon::oneHanded);
   }
 
   return item;

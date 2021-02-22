@@ -64,10 +64,12 @@ void Potion::print() const{
 
 /* Subclass *Weapon* implementation */
 
-Weapon::Weapon(string name, int damage, int price, int requiredLevel)
+Weapon::Weapon(string name, int damage, \
+int price, int requiredLevel, int handsRequired)
 : Item(name, price, requiredLevel)
 {
     this->damage = damage;
+    this->handsRequired = handsRequired;
     print();
 }
 
@@ -118,9 +120,12 @@ void Armor::print()const {
 
 
 Inventory::Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money)
-{
-    this->weapon = weaponToequip;
-    this->armor = armorToEquip;
+{   
+    this->weapon = nullptr;
+    this->handSlot[0] = this->handSlot[1] = nullptr;
+    this->armor = nullptr;
+    equipWeapon(weaponToequip);
+    equipArmor(armorToEquip);
     this->money = money;
     cout << "A new Inventory constructed" << endl;
     print();
@@ -135,14 +140,18 @@ Inventory::~Inventory(){
 
 
 void Inventory::disarmWeapon(void){
+
     if(this->weapon != nullptr){
         items.push_back(this->weapon);
+        if(handSlot[0] == weapon)handSlot[0] = nullptr;
+        if(handSlot[1] == weapon)handSlot[1] = nullptr;
         this->weapon = nullptr;
     }
 }
 
 
 void Inventory::disarmArmor(void){
+    if(this->armor == nullptr)return;
     items.push_back(this->armor);
     this->armor = nullptr;
 }
@@ -156,6 +165,11 @@ bool Inventory::equipWeapon(Weapon *weapon){
     /* If weapon can be equipped */
     disarmWeapon();
     this->weapon = weapon;
+
+    handSlot[0] = weapon; 
+    if(weapon->getHandsRequired() == Weapon::twoHanded)
+        handSlot[1] = weapon; 
+
 
     return true;
 }
@@ -212,10 +226,16 @@ void Inventory::print(void) const{
 
     cout << "** Inventory **" << endl
         << "-----------------------------------" << endl
-        << "Equipped Weapon: ";
-    if(this->weapon != nullptr)
-        cout << this->weapon->getName() << endl;
+        << "Equipped Weapon: \n";
+    if(this->weapon != nullptr){
+        if(handSlot[0] == this->weapon)
+            cout << "   Right hand: " << handSlot[0]->getName() << endl;
+        if(handSlot[1] == this->weapon)
+            cout << "   Left  hand: " << handSlot[1]->getName() << endl;
+    }
     else cout << " - " << endl;
+
+    cout << endl;
 
     cout << "Equipped Armor: ";
     if(this->armor != nullptr)
@@ -223,10 +243,12 @@ void Inventory::print(void) const{
     else cout << " - " << endl ;
 
     cout << "-----------------------------------" << endl;
-
+    
     int i = 0;
     //or auto (*item)->print();
     bool hasItems = false;
+    cout << items.size() << endl;
+    
     for (auto item = items.begin(); item != items.end(); item++, i++) {
         cout << "inventory slot[" << i << "]: "
              << (*item)->getName() << endl; 

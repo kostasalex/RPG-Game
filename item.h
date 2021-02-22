@@ -82,7 +82,9 @@ class Weapon : public Item{
 
     public:
         /* Constructor - Destructor */
-        Weapon(std::string name, int damage, int price, int requiredLevel);
+        enum hands{oneHanded, twoHanded};
+        Weapon(std::string name, int damage, int price,\
+         int requiredLevel, int handsRequired);
         ~Weapon();
 
 
@@ -128,8 +130,11 @@ class Inventory{
     private:
         //Equipped items
         Weapon *weapon;
+
         Armor *armor;
         int money;
+
+        Item *handSlot[2];
 
         std::vector<Item*> items;
 
@@ -156,7 +161,6 @@ class Inventory{
 
         inline Weapon *getWeapon(void){return this->weapon;}
         inline Armor *getArmor(void){return this->armor;}
-
         inline void addMoney(int money){ this->money+= money; }
         inline void subMoney(int money)
         {this->money = ((this->money - money) < 0)? 0 : (this->money - money);}

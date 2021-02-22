@@ -36,11 +36,12 @@ Hero::Hero(string name) : Living(name){
     experience = startingExperience;
     
     int damage = 1000, price = 10, requiredLvl = 1;
-    Weapon *weapon = new Weapon("Wooden Sword", damage, price, requiredLvl);
+    Weapon *weapon = 
+    new Weapon("Wooden Sword", damage, price, requiredLvl, Weapon::oneHanded);
 
     int defence = 15; price = 20;
     Armor *armor = new Armor("Wooden Armor", defence, price, requiredLvl);
-
+    
     int money = startingMoney;
     this->inventory = new Inventory(weapon, armor, money);
 }

@@ -107,7 +107,6 @@ class Hero : public Living{
 
         Inventory *inventory;
 
-        /* Return status when trying to equip item or learning a spell */
         enum stats{strength, dexterity, agility};
 
         static const std::string statsTypeMsg[3];
