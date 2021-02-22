@@ -108,7 +108,6 @@ class Hero : public Living{
         Inventory *inventory;
 
         /* Return status when trying to equip item or learning a spell */
-        enum equipLearn{succeed, notFound, higherLevel, wrongType};
         enum stats{strength, dexterity, agility};
 
         static const std::string statsTypeMsg[3];
@@ -122,7 +121,7 @@ class Hero : public Living{
 
 
         /* Combat  */
-        int usePotion(int inventorySlot);
+        bool usePotion(Potion *potion);
 
         void levelUp(void);
 
@@ -136,7 +135,7 @@ class Hero : public Living{
 
 
         //Equip weapon and armor
-        int equip(int inventorySlot);
+        bool equip(Item *item);
 
         int inventoryAdd(Item *item);
 

@@ -350,6 +350,7 @@ bool Hero::checkInventory(bool equip, bool drinkPotion){
     
     inventory->print();
     int size;
+
     if(inventory->getSize() != 0 ){
 
         if(equip == true){
@@ -378,12 +379,32 @@ bool Hero::checkInventory(bool equip, bool drinkPotion){
             int inventorySlot;
             while(inputHandler(inventorySlot, inventorySlots, size)==false);
 
+            Item *item = inventory->getItem(inventorySlot);
+            Potion *potion = dynamic_cast<Potion*>(item);
+            
+            bool isPotion = (potion != nullptr);
+            bool isItemUsed;
+
             if(selection == 1){
-                if(this->equip(inventorySlot) == succeed)return true;
+                if(isPotion == true){
+                    cout << "Can't equip " << item->getName() << " !!\n";
+                    return false;
+                }
+                isItemUsed = this->equip(item);
             }
             else if(selection == 2){
-                if(this->usePotion(inventorySlot) == succeed)return true;
+                if(isPotion == false){
+                    cout << "Can't drink " << item->getName() << " !!\n";
+                    return false;
+                }
+                isItemUsed = this->usePotion(potion);
             }
+
+            if(isItemUsed == true){
+                inventory->popItem(inventorySlot);
+                return true;
+            }
+            else return false;
         }
     }
 
@@ -417,80 +438,37 @@ int Hero::inventoryAdd(Item *item){
 
 
 
-int Hero::equip(int inventorySlot){
+bool Hero::equip(Item *item){
 
-    int result;
-    
-    Item *item = inventory->getItem(inventorySlot);
-    if(item == nullptr)result = notFound;
-    else{
+    bool isEquipped = false;
 
-        if(item->getType() == Item::weapon){
-            if(item->getLevel() > this->getLevel())result = higherLevel;
-            else result = this->inventory->equipWeapon((Weapon*)item);
-        }
-        else if(item->getType() == Item::armor){
-            if(item->getLevel() > this->getLevel())result = higherLevel;
-            else result = this->inventory->equipArmor((Armor*)item);
-        }
-        else result = wrongType;
-        
+    if(item->getLevel() > this->getLevel()){
+        cout << "Couldn't equip " << item->getName()
+                << ".. Missing" << item->getLevel() - getLevel()
+                << " levels" << endl;
     }
 
-    switch(result){
+    Weapon *weapon = dynamic_cast<Weapon*>(item);
+    if(weapon != nullptr)isEquipped = inventory->equipWeapon(weapon);
+    else isEquipped = inventory->equipArmor((Armor*)item);
 
-        case succeed:
-            cout << item->getName() << " equipped!" << endl;
-            inventory->popItem(inventorySlot);
-            break;
-
-        case notFound:
-            cout << "There is no item in slot "<< inventorySlot << endl;
-            break;
-
-        case higherLevel:
-            cout << "Couldn't equip " << item->getName()
-                 << ".. Missing" << item->getLevel() - getLevel()
-                 << " levels" << endl;
-            break;
-
-        case wrongType:
-            cout << "Can't equip " << Item::itemTypeMsg[item->getType()] << endl;
-        
-        
+    if(isEquipped == false){
+        cout << "Error ! Couldnt equip item\n";
     }
+    else cout << item->getName() << " equipped!" << endl;
 
-    return result;
+    return isEquipped;
 }
 
 
 
-int Hero::usePotion(int inventorySlot){
-    int result = -1;
+bool Hero::usePotion(Potion *potion){
+
+    cout << this->getName() << " is drinking " << potion->getName() << endl;
+
+    addBuff(potion->drink());
     
-    Item *item = inventory->getItem(inventorySlot);
-    if(item == nullptr) return notFound;
-
-    /* Check if item is potion */
-
-    if(item->getType() == Item::potion){
-        if(item->getLevel() > this->getLevel())result = higherLevel;
-        else result = succeed;
-    }
-    else{
-        cout << "Can't drink " << Item::itemTypeMsg[item->getType()] << ".." << endl;
-        return wrongType;
-    } 
-    
-    if(result == succeed){
-        inventory->popItem(inventorySlot);
-        Potion* potion = (Potion*)item;
-        addBuff(potion->drink());
-        //delete inventory->popItem(inventorySlot);
-    }
-
-    return result;
-
+    return true;
 }
 
 

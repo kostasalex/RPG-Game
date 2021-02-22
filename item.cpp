@@ -2,16 +2,13 @@
 #include "buff.h"
 
 using namespace std;
-const string Item::itemTypeMsg[3] = 
-{"weapon", "armor", "potion"};
 /* Base class *Item* implementation */
 
-Item::Item(string name, int price, int requiredLevel, int type)
+Item::Item(string name, int price, int requiredLevel)
 {
     this->name = name;
     this->price = price;
     this->requiredLevel = requiredLevel;
-    this->type = type;
 
     //*Debug
     cout << "A new item constructed " << endl;
@@ -28,7 +25,7 @@ Item::~Item ()
 
 Potion::Potion(string name, int stat, \
 int price, int points, int requiredLevel) : 
-Item(name, price, requiredLevel, potion)
+Item(name, price, requiredLevel)
 {
     this->stat = stat;
     this->points = points;
@@ -68,7 +65,7 @@ void Potion::print() const{
 /* Subclass *Weapon* implementation */
 
 Weapon::Weapon(string name, int damage, int price, int requiredLevel)
-: Item(name, price, requiredLevel, weapon)
+: Item(name, price, requiredLevel)
 {
     this->damage = damage;
     print();
@@ -95,7 +92,7 @@ void Weapon::print()const {
 /* Subclass *Armor* implementation */
 
 Armor::Armor(string name, int defence, int price, int requiredLevel)
-: Item(name, price, requiredLevel, armor)
+: Item(name, price, requiredLevel)
 {
     this->defence = defence;
     print();
@@ -151,29 +148,29 @@ void Inventory::disarmArmor(void){
 }
 
 
-int Inventory::equipWeapon(Weapon *weapon){
+bool Inventory::equipWeapon(Weapon *weapon){
     
     /* If can't equip weapon */
-    if(weapon == nullptr)return notFound;
+    if(weapon == nullptr)return false;
     
     /* If weapon can be equipped */
     disarmWeapon();
     this->weapon = weapon;
 
-    return succeed;
+    return true;
 }
 
 
-int Inventory::equipArmor(Armor *armor){
+bool Inventory::equipArmor(Armor *armor){
     
     /* If can't equip armor */
-    if(armor == nullptr)return notFound;
+    if(armor == nullptr)return false;
     
     /* If armor can be equipped */
     disarmArmor();
     this->armor = armor;
 
-    return succeed;
+    return true;
 }
 
 
