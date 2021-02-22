@@ -13,32 +13,32 @@ class Spell{
         int pointsAffect;
         int price;
         struct dmg{ int lb, ub; }dmg;   //Damage range 
-        static int ub_damage;           //Added to lb_damage
-        
-        /*struct TargetStat{
-            int stat, points;
-        }targetStat;
-    protected:
-        inline int debuff(int &stat){ }*/
+        static const int ub_damage = 50;           //Added to lb_damage
+        int rounds; //Debuff duration
+        int targetStat;
 
+    protected:
+        static const std::string deBuffNames[3];
+        static const int deBuffRounds = 5;
+        inline int getRounds(void){return rounds;}
     public:
+        static const int spellTypes = 3;
         enum statAffect{damage, defence, dodge};
         static std::string statMsg[3];
 
         Spell(std::string name, int lb_damage, int pointsAffect, \
-        int price, int requiredLevel, int mpCost);
+        int price, int requiredLevel, int mpCost, int stat);
 
         virtual ~Spell() = 0;
 
-        void virtual cast(int dexterity, int &targetStat,\
-         int &points,  int &damage) = 0;
+        virtual struct Buff* cast(int dexterity, int &damage) = 0;
 
         void virtual print(void) = 0;
 
 
         inline int getMp(void) const {return this->mpCost;}
 
-        inline int getLvl(void) const {return this->requiredLevel;}
+        inline int getLevel(void) const {return this->requiredLevel;}
 
         inline std::string getName(void) const {return this->name;}
 
@@ -53,6 +53,8 @@ class Spell{
         inline int getDamage(int dexterity)
         {return ((dmg.lb + dexterity) > dmg.ub)? dmg.ub : (dmg.lb + dexterity);}
 
+        inline int getStat(void){return targetStat;}
+
 };
 
 
@@ -65,12 +67,9 @@ class IceSpell : public Spell{
 
         ~IceSpell();
 
-        void cast(int dexterity, int &targetStat, \
-         int &points,  int &damage) override;
+        struct Buff* cast(int dexterity, int &damage)override;
 
         void print(void) override;
-
-
 
 };
 
@@ -84,8 +83,7 @@ class FireSpell : public Spell{
         
         ~FireSpell();
 
-        void cast(int dexterity, int &targetStat,\
-         int &points,  int &damage)override;
+        struct Buff* cast(int dexterity, int &damage)override;
 
         void print(void) override;
 
@@ -102,8 +100,7 @@ class LightingSpell : public Spell{
 
         ~LightingSpell();
 
-        void cast(int dexterity, int &targetStat,\
-         int &points,  int &damage) override;
+        struct Buff* cast(int dexterity, int &damage)override;
 
         void print(void) override;
 

@@ -17,9 +17,10 @@ class Item{
         int price;
         int requiredLevel; //Level needed in order to use
 
+
     public:
         enum itemTypes{weapon, armor, potion};
-        static std::string types[3];
+        static const std::string itemTypeMsg[3];
         /* Constructor - Destructor */
         Item(std::string name, int price, int requiredLevel, int type);
         virtual ~Item() = 0;
@@ -47,12 +48,21 @@ class Potion : public Item{
     private:
         int stat;//Stat that will be affected
         int points;
+        /* Buff duration before modifiers */
+        static const int buffRounds = 5;
+        int rounds; //Buff duration
 
+        static const std::string buffNames[3];
     public:
+        enum statsType{strength, dexterity, agility};
+        static const int potionTypes = 3;
+
         /* Constructor - Destructor */
         Potion(std::string name, int stat,\
         int price, int points, int requiredLevel);
         ~Potion();
+
+        struct Buff* drink(void);
 
         /* Override functions */
         void print() const override;
@@ -60,8 +70,6 @@ class Potion : public Item{
 
         /* Inline functions */
         inline int getStat(void) { return this->stat; }
-
-        inline void inscrease(int &stat){ stat += points; }
 
         inline int getPoints(void){return this->points;}
 
@@ -135,7 +143,6 @@ class Inventory{
 
         /* Return status when trying to equip item */
         enum equip{succeed, notFound, higherLevel, wrongType};
-
     public:
 
         Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money);

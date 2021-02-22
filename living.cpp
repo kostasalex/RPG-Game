@@ -2,41 +2,38 @@
 #include <time.h>    
 #include "living.h"
 #include "spell.h"
+#include "utils.h"
+#include "buff.h"
 
 using namespace std;
 
+
+const string Hero::statsTypeMsg[3] = 
+{"strength", "dexterity", "agility"};
+
 /* Base class *Living* implementation*/
-
-string Hero::statsMsg[3] = {"strength", "dexterity", "agility"};
-string Hero::statusMsg[4] = {"succeed", "notFound", "higherLevel", "wrongType"};
-
 Living::Living(string name)
 { 
-    //*Debug
-    cout << "Creating a Living..!" << endl;
     this->name = name;
-    this->level = 3;
-    this->hp = this->maxHp = 1000; 
+    this->level = startingLevel;
+    this->hp = this->maxHp = startingHp; 
 }
 
 Living::~Living(){
-    //*Debug
-    cout << "A living to be destroyed" << endl;
 }
 
 
 /* Subclass of Living -> *Hero* implementation */
-
 Hero::Hero(string name) : Living(name){
-    //*Debug
-    cout << "Becoming a Hero..!" << endl;
 
     /* Init strength, dexterity, agility */
     this->current = 
     this->base = {startingStr, startingDex, startingAgi};
 
-    maxMp = mp = 500;
-    experience = 0;
+    buffCounter = 0;
+
+    maxMp = mp = startingMp;
+    experience = startingExperience;
     
     int damage = 1000, price = 10, requiredLvl = 1;
     Weapon *weapon = new Weapon("Wooden Sword", damage, price, requiredLvl);
@@ -44,21 +41,21 @@ Hero::Hero(string name) : Living(name){
     int defence = 15; price = 20;
     Armor *armor = new Armor("Wooden Armor", defence, price, requiredLvl);
 
-    int money = 200;
+    int money = startingMoney;
     this->inventory = new Inventory(weapon, armor, money);
-
-
 }
+
 
 Hero::~Hero(){
-    //*Debug
-    cout << "A Hero to be destroyed" << endl; 
+    for(int i = 0; i < buffCounter; i++)
+        delete buffs[i];
 }
+
 
 
 bool Hero::learnSpell(Spell *spell){
 
-    if(this->getLevel() >= spell->getLvl()){
+    if(this->getLevel() >= spell->getLevel()){
         this->spells.push_back(spell);
         cout << this->getName() << " successfully learned spell "
         << spell->getName() << endl;
@@ -68,7 +65,7 @@ bool Hero::learnSpell(Spell *spell){
 }
 
 
-int Hero::castSpell(int spellId, Living *living) {
+bool Hero::castSpell(int spellId, Living *living) {
 
 
     if(spellId < (int)this->spells.size()){
@@ -76,43 +73,31 @@ int Hero::castSpell(int spellId, Living *living) {
 
         if(spell->getMp() > this->mp){
             cout << "Not enough mp!" << endl;
-            return -1;
+            return false;
         }
         else{
             cout << this->getName() << " casting "
                  << spell->getName() << " to " 
                  << living->getName() << endl;
 
-            int targetStat, points, damage;
-            spell->cast(this->dexterity, targetStat, points, damage);
+            int damage;
+            Buff *deBuff = spell->cast(this->current.dex, damage);
 
             this->subMp(spell->getMp());
 
-            //If damage received cast debuff
-            if(living->receiveDamage(damage) != 0){
+            //If damage received and it's still alive cast debuff
+            if(living->receiveDamage(damage) != 0 && living->getHp()!= 0 ){
                 Monster *monster = (Monster*)living;
-                switch(targetStat){
-                    case Spell::damage:
-                        monster->subDmg(points);
-                        break;
-                    case Spell::defence:
-                        monster->subDef(points);
-                        break;
-                    case Spell::dodge:
-                        monster->subDodge(points);
-                        break;
-
-                }
-                cout << Spell::statMsg[targetStat] 
-                    << " descreased by " << points << endl;
+                monster->receiveDeBuff(deBuff);
             }
+            else delete deBuff;
         }
     }
     else {
         cout << "Spell not found!" << endl;
-        return notFound;
+        return false;
     }
-    return succeed;
+    return true;
 }
 
 
@@ -124,12 +109,11 @@ int Hero::attack(Living *living) const{
     if(weapon == nullptr)totalDmg = 0;
     else totalDmg = weapon->getDamage();
 
-    totalDmg +=(this->strength / 100.0) * totalDmg; 
+    totalDmg += (this->current.str / 100.0) * totalDmg; 
     cout << this->getName() << " attacks " <<
         living->getName() << endl;
     
     living->receiveDamage(totalDmg);
-
     return totalDmg;
 
 }
@@ -157,7 +141,7 @@ int Hero::receiveDamage(int damage){
         } 
     }
 
-    if(this->getHp() == 0) cout << " Fell into a state of unconsciousness!!" << endl;
+    if(this->getHp() == 0)goUnconscious();
 
     return damageDealt;
 
@@ -166,26 +150,78 @@ int Hero::receiveDamage(int damage){
 
 void Hero::receiveExperience(int exp){
 
-    int result;
+    int result = getExp() + exp;
 
     cout << getName() << " received "
          << exp << " experience!" << endl;
 
-    if((getExp() + exp) >= 100){
-
-        levelUp();
-
-        int result = (getExp() + exp) - 100;
-
-        cout << 0 << " --> " << result << endl;
+    if(result >= maxExperience){
+        if(getLevel() == maxLevel){
+            result = maxExperience;
+        }
+        else{
+            result = (getExp() + exp) - maxExperience;
+            setExp(0);
+            levelUp();
+        }
 
     }
-    else{
-        result = getExp() + exp;
-        cout << getExp() << " --> " << result << endl;
-    }
 
+    cout << getExp() << " --> " << result << endl;
     setExp(result);
+}
+
+
+void Hero::revive(bool getPenalty){
+
+    //Can't revive a living one..
+    if(getHp() != 0){
+        cout << getName() << " isn't unconscious" << endl;
+        return;
+    }
+    int restoreLife = getMaxHp() / 2;
+
+    cout << getName() << " revived!!" << endl
+         << "Restored hp: " << getHp() << " --> ";
+    this->addHp(restoreLife);
+    cout << getHp() << endl;
+
+    if(getPenalty == true){
+        cout << "Money lost: " << getMoney() << " --> ";
+        subMoney(getMoney()/2);
+        cout << getMoney() << endl;
+    }
+
+}
+
+
+
+void Hero::goUnconscious(void){
+    cout << "Fell into a state  of unconsciousness!!" << endl;
+    int counter = buffCounter;
+    for(int i = 0; i < counter; i++){
+            removeBuff(i);
+    }
+}
+
+
+
+void Hero::regeneration(void){
+
+    if(getHp() != 0){
+      cout << getName() << " regeneration ++ " << endl
+           << "hp regen: "
+           << getHp() << "-->";
+
+      addHp(getMaxHp()*regenRate);
+      cout << getHp() << endl;
+
+      cout << "mp regen: " << getMp() << "-->";
+
+      addMp(getMaxMp()*regenRate);
+      cout << getMp() << endl << endl;
+    }
+    else  cout << getName() << " is Unconscious!" << endl << endl;
 
 }
 
@@ -193,9 +229,24 @@ void Hero::receiveExperience(int exp){
 void Hero::levelUp(void){
 
     cout << "Level up!!" << endl;
-    cout << getLevel() << " --> ";
+    cout << "Level: " << getLevel() << " --> ";
     addLevel(1);
     cout << getLevel() << endl;
+
+    cout 
+    << "str: " << current.str << " --> " << current.str + statsPerLevel << endl
+    << "dex: " << current.dex << " --> " << current.dex + statsPerLevel << endl
+    << "agi: " << current.agi << " --> " << current.agi + statsPerLevel << endl
+    << "Life: " << getHp() << "/" << getMaxHp() << " --> "
+    << getHp() + hpPerLevel << "/" << getMaxHp() + hpPerLevel << endl
+    << "Mana: " << this->mp << "/" << this->maxMp << " --> "
+    << this->mp + mpPerLevel << "/" << this->maxMp + mpPerLevel << endl << endl;
+
+    addStats(statsPerLevel, statsPerLevel, statsPerLevel);
+    addBaseStats(statsPerLevel, statsPerLevel, statsPerLevel);
+    addMaxHp(hpPerLevel);addHp(hpPerLevel);
+    addMaxMp(mpPerLevel);addMp(mpPerLevel);
+
 }
 
 
@@ -211,8 +262,133 @@ void Hero::checkSpells(void) const{
 }
 
 
-void Hero::checkInventory(void) const{
-    this->inventory->print();
+void Hero::pickUp(Item *item){
+    if(item != nullptr){
+        inventory->addItem(item);
+        cout << getName() << " Picked up " 
+        << item->getName() << "!!!" << endl;
+    }
+}
+
+
+void Hero::pickUp(int money){
+    if(money > 0){
+        addMoney(money);
+        cout << getName() << " Picked up " 
+        << money << " gold!!!" <<  endl;
+    }
+}
+
+
+Item* Hero::sell(int inventorySlot){
+
+    Item* item = inventory->popItem(inventorySlot);
+
+    if(item != nullptr){
+        cout << "Selling " << item->getName() << " .." << endl;
+    }
+    else{
+        cout << "Couldn't sell requested item, there is no item in slot "
+             << inventorySlot << "!!" << endl;
+    }
+
+    return item;
+}
+
+
+
+void Hero::buy(Item *item){
+
+    if(item != nullptr){
+        if(getMoney() >= item->getPrice()){
+            if(getLevel() >= item->getLevel()){
+                subMoney(item->getPrice());
+                cout << item->getName() << " successfully purchased!!" << endl; 
+                inventoryAdd(item);
+            }
+            else cout << item->getName() << " requires level "
+                      << item->getLevel() << endl;
+        }
+    else cout << item->getPrice()- getMoney() << " gold is missing!" << endl;
+    }
+
+}
+
+
+void Hero::buy(Spell *spell){
+
+    if(spell != nullptr){
+        if(getMoney() >= spell->getPrice()){
+            if(getLevel() >= spell->getLevel()){
+                if(findSpell(spell) == false){
+                    subMoney(spell->getPrice());
+                    cout << spell->getName()
+                         << " successfully purchased!!" << endl; 
+                    learnSpell(spell);
+                }
+                else  cout << spell->getName()
+                           << " allready learned!!" << endl; 
+            }
+            else cout << spell->getName() << " requires level "
+                      << spell->getLevel() << endl;
+        }
+    else cout << spell->getPrice()- getMoney() << " gold is missing!" << endl;
+    }
+
+}
+
+
+bool Hero::findSpell(Spell *spell){
+    for(int i = 0; i < (int)spells.size(); i++){
+        if(spell == spells[i])return true;
+    }
+    return false;
+}   
+
+
+bool Hero::checkInventory(bool equip, bool drinkPotion){
+    
+    inventory->print();
+    int size;
+    if(inventory->getSize() != 0 ){
+
+        if(equip == true){
+            cout << "[1] Equip Item" << endl;
+            size = 2;
+        }
+        if(drinkPotion == true){
+            cout << "[2] Drink a potion "<< endl;
+            size = 3;
+        }
+        if(drinkPotion == true || equip == true){
+            
+            int selection;
+
+            cout << "[0] Go back" << endl
+                 <<">";
+            while(inputHandler(selection, options, size) == false);
+            
+            if(selection == 0)return false;
+
+            cout << "Inventory slot: ";
+            size = inventory->getSize();
+            int inventorySlots[size];
+            for(int i = 0; i < size; i++)inventorySlots[i] = i;
+            
+            int inventorySlot;
+            while(inputHandler(inventorySlot, inventorySlots, size)==false);
+
+            if(selection == 1){
+                if(this->equip(inventorySlot) == succeed)return true;
+            }
+            else if(selection == 2){
+                if(this->usePotion(inventorySlot) == succeed)return true;
+            }
+        }
+    }
+
+    return false;
+
 } 
 
 
@@ -228,6 +404,8 @@ void Hero::checkStats(void) const{
     << ">> Dexterity: " << this->current.dex  << endl
     << ">> Agility: "  << this->current.agi  << endl 
     << "==================================" << endl << endl;
+
+    printBuffs();
 
 
 }
@@ -277,7 +455,7 @@ int Hero::equip(int inventorySlot){
             break;
 
         case wrongType:
-            cout << "Can't equip " << Item::types[item->getType()] << endl;
+            cout << "Can't equip " << Item::itemTypeMsg[item->getType()] << endl;
         
         
     }
@@ -293,32 +471,21 @@ int Hero::usePotion(int inventorySlot){
     Item *item = inventory->getItem(inventorySlot);
     if(item == nullptr) return notFound;
 
-    /* Check if item is weapon */
+    /* Check if item is potion */
 
     if(item->getType() == Item::potion){
         if(item->getLevel() > this->getLevel())result = higherLevel;
         else result = succeed;
     }
-    else return wrongType;
+    else{
+        cout << "Can't drink " << Item::itemTypeMsg[item->getType()] << ".." << endl;
+        return wrongType;
+    } 
     
     if(result == succeed){
         inventory->popItem(inventorySlot);
         Potion* potion = (Potion*)item;
-        int points = potion->getPoints();
-
-        switch(potion->getStat()){
-            case strength:
-                this->addStats(points, 0, 0);
-                break;
-            case dexterity:
-                this->addStats(0, points, 0); 
-                break;
-            case agility:
-                this->addStats(0, 0, agility); 
-                break;
-        }
-        cout << "successfully restored " << potion->getPoints()
-             << " points of " << statsMsg[potion->getStat()] << endl;
+        addBuff(potion->drink());
         //delete inventory->popItem(inventorySlot);
     }
 
@@ -327,7 +494,115 @@ int Hero::usePotion(int inventorySlot){
 }
 
 
-void Hero::print(void) const{
+void Hero::printBuffs(void) const{
+
+    if(buffCounter > 0){
+        cout << "*Active buffs: ";
+        for(int i = 0; i < buffCounter; i++){
+            cout << "# "  << buffs[i]->getName() << " || "
+                    <<"Rounds remain: " << buffs[i]->getRounds() << " # ";
+        }
+        cout << endl;
+    }
+}
+
+
+void Hero::roundPass(void){
+
+    regeneration();
+    int counter = buffCounter;
+    for(int i = 0; i < counter; i++){
+        if(buffs[i]->roundPass() == 0){
+            removeBuff(i);
+        }     
+    }
+}
+
+
+int Hero::findBuff(Buff *buff){
+    for(int i = 0; i < buffCounter; i++)
+        if(buffs[i]->isTheSame(buff))return i;
+
+    return -1;
+}
+
+
+void Hero::addBuff(Buff *buff){
+
+    if(buff == nullptr){
+        cout << "Couldn't add buff\n";
+    }
+
+    cout << "Buff " << buff->getName();
+    int buffSlot = findBuff(buff);
+
+    if(findBuff(buff) == -1){
+        /*If buff slots are full, remove the 1st buff */
+        if(buffCounter == maxBuffs){
+            removeBuff(0);
+        }
+
+        cout << " activated!!" << endl;
+        int points = buff->getPoints();
+        switch(buff->getStat()){
+            case strength:
+                this->addStats(points, 0, 0);
+                break;
+            case dexterity:
+                this->addStats(0, points, 0); 
+                break;
+            case agility:
+                this->addStats(0, 0, points); 
+                break;
+        }
+        cout << "successfully inscreased " << points
+             << " points of " << statsTypeMsg[buff->getStat()] << endl;
+
+        buffSlot = this->buffCounter;
+        this->buffCounter++;
+    }
+    else{/*If buff allready exist , delete it and add the new one */
+        cout << " renewed!!" << endl;
+        delete buffs[buffSlot];
+    }
+
+    buffs[buffSlot] = buff;
+}
+
+
+void Hero::removeBuff(int buffSlot){
+
+    cout << buffs[buffSlot]->getName() << " worn off!!" << endl;
+
+    switch(buffs[buffSlot]->getStat()){
+        case strength:
+            cout << "strength: " << this->current.str
+            << " --> " << this->base.str << endl;
+            this->current.str =  this->base.str;
+            break;
+        case dexterity:
+            cout << "dexterity: " << this->current.dex
+            << " --> " << this->base.dex << endl;
+            this->current.dex =  this->base.dex; 
+            break;
+        case agility:
+            cout << "agility: " << this->current.agi
+            << " --> " << this->base.agi << endl;
+            this->current.agi =  this->base.agi;
+            break;
+    }
+
+    delete buffs[buffSlot];
+
+    //Move all buffs one slot left
+    for(int i = buffSlot; i < buffCounter-1; i++){
+        buffs[i] = buffs[i+1];
+    }
+    buffCounter--;
+}
+
+
+void Hero::print(void){
     cout << "||Hero <" << getName() << ">||" << endl
     << "Level: "<< getLevel() << endl
     << "Experience: " << this->experience << "/" << "100" << endl
@@ -339,6 +614,7 @@ void Hero::print(void) const{
     << ">> Agility: "  << this->current.agi  << endl << endl;
     this->checkInventory();
     this->checkSpells();
+    this->printBuffs();
 }
 
 
@@ -346,7 +622,7 @@ void Hero::print(void) const{
 
 Warrior::Warrior(string name) : Hero(name){
     //*Debug
-    cout << "Becoming a warrior..!" << endl;
+    cout << "Warrior " << name << " successfully created!!\n";
     //Inscrease strength and agility
     addBaseStats(additionalStr,0,additionalAgi);
     addStats(additionalStr,0,additionalAgi);
@@ -354,8 +630,6 @@ Warrior::Warrior(string name) : Hero(name){
 }
 
 Warrior::~Warrior(){
-    //*Debug
-    cout << "A warrior to be destroyed " << endl;
 }
 
 
@@ -363,7 +637,7 @@ Warrior::~Warrior(){
 
 Sorcerer::Sorcerer(string name) : Hero(name){
     //*Debug
-    cout << "Becoming a sorcerer..!" << endl;
+    cout << "Sorcerer " << name << " successfully created!!\n";
     //Inscrease dexterity and agility
     addBaseStats(0,additionalDex,additionalAgi);
     addStats(0,additionalDex,additionalAgi);
@@ -371,8 +645,6 @@ Sorcerer::Sorcerer(string name) : Hero(name){
 }
 
 Sorcerer::~Sorcerer(){
-    //*Debug
-    cout << "A sorcerer to be destroyed " << endl;
 }
 
 
@@ -380,7 +652,7 @@ Sorcerer::~Sorcerer(){
 
 Paladin::Paladin(string name) : Hero(name){
     //*Debug
-    cout << "Becoming a paladin..!" << endl;
+    cout << "Paladin " << name << " successfully created!!\n";
     //Inscrease strength and dexterity
     addBaseStats(additionalStr,additionalDex,0);
     addStats(additionalStr,additionalDex,0);
@@ -388,8 +660,6 @@ Paladin::Paladin(string name) : Hero(name){
 }
 
 Paladin::~Paladin(){    
-    //*Debug
-    cout << "A paladin to be destroyed " << endl;
 }
 
 
@@ -406,11 +676,13 @@ Monster::Monster(string name) : Living(name){
     //Init stats: defence dodge
     base = current = {startingDef, startingDodge};
 
+    deBuffCounter = 0;
+
 }
 
 Monster::~Monster(){
-    //*Debug
-    cout << "A monster to be destroyed " << endl;
+    for(int i = 0; i < deBuffCounter; i++)
+        delete deBuffs[i];
 }
 
 
@@ -450,13 +722,161 @@ int Monster::receiveDamage(int damage){
         } 
     }
 
-    if(this->getHp() == 0) cout << "Fell into a state of unconsciousness!!"
-                    << endl << endl;
+    if(this->getHp() == 0)goUnconscious();
 
     return damageDealt;
 }
 
-void Monster::print(void) const{
+
+void Monster::printDeBuffs(void) const{
+
+    if(deBuffCounter > 0){
+        cout << "*Active debuffs: ";
+        for(int i = 0; i < deBuffCounter; i++){
+            cout << "# "  << deBuffs[i]->getName() << " || "
+                    <<"Rounds remain: " << deBuffs[i]->getRounds() << " # ";
+
+        }
+        cout << endl;
+            
+    }
+}
+
+
+void Monster::goUnconscious(void){
+    cout << getName() 
+         << " Fell into a state of unconsciousness!!" << endl;
+
+    int counter = deBuffCounter;
+    for(int i = 0; i < counter; i++){
+            removeDeBuff(i);
+    }
+}
+
+
+
+void Monster::regeneration(void){
+
+    if(getHp() != 0){
+      cout << getName() << " regeneration ++ " << endl
+           << "hp regen: "
+           << getHp() << "-->";
+
+      addHp(getMaxHp()*regenRate);
+      cout << getHp() << endl;
+    }
+    else  cout << getName() << " is Unconscious!" << endl << endl;
+
+}
+
+
+void Monster::roundPass(void){
+
+    regeneration();
+    int counter = deBuffCounter;
+    for(int i = 0; i < counter; i++){
+        if(deBuffs[i]->roundPass() == 0){
+            removeDeBuff(i);
+        }     
+    }
+}
+
+
+int Monster::findDeBuff(Buff *deBuff){
+    for(int i = 0; i < deBuffCounter; i++)
+        if(deBuffs[i]->isTheSame(deBuff))return i;
+
+    return -1;
+}
+
+
+void Monster::receiveDeBuff(Buff *deBuff){
+    
+    if(deBuff == nullptr){
+        cout << "Couldn't add debuff\n";
+    }
+
+
+    cout << "DeBuff " << deBuff->getName();
+    int deBuffSlot = findDeBuff(deBuff);
+
+    if(findDeBuff(deBuff) == -1){
+        /*If debuff slots are full, remove the 1st debuff */
+        if(deBuffCounter == maxDeBuffs){
+            removeDeBuff(0);
+        }
+
+        cout << " activated!!" << endl;
+
+        cout << " activated!!" << endl;
+        int points = deBuff->getPoints();
+        switch(deBuff->getStat()){
+            case Spell::damage:
+                subDmg(points);
+                break;
+            case Spell::defence:
+                subDef(points);
+                break;
+            case Spell::dodge:
+                subDodge(points);
+                break;
+        }
+
+        cout << "successfully descreased " << points
+             << " points of " << Spell::statMsg[deBuff->getStat()] << endl;
+
+        deBuffSlot = this->deBuffCounter;
+        this->deBuffCounter++;
+    }
+    else{/*If debuff allready exist , don't add more points to stat affected*/
+        cout << " renewed!!" << endl;
+        delete deBuffs[deBuffSlot];
+    }
+
+    deBuffs[deBuffSlot] = deBuff;
+
+}
+
+
+void Monster::removeDeBuff(int deBuffSlot){
+
+
+    cout << deBuffs[deBuffSlot]->getName() << " worn off!!" << endl;
+
+    switch(deBuffs[deBuffSlot]->getStat()){
+        case Spell::damage:
+            cout << "damage: " << this->currentDmg.lb 
+            << " - " << this->currentDmg.ub
+            << " --> ";
+            this->currentDmg = this->baseDmg;
+            cout << this->currentDmg.lb 
+            << " - " << this->currentDmg.ub << endl;
+            break;
+        case Spell::defence:
+            cout << "defence: " << this->current.defence
+            << " --> ";
+            this->current.defence = this->base.defence;
+            cout << this->current.defence << endl;
+            break;
+        case Spell::dodge:
+            cout << "dodge: " << this->current.dodge
+            << " --> ";
+            this->current.dodge = this->base.dodge;
+            cout << this->current.dodge << endl;
+            break;
+    }
+    delete deBuffs[deBuffSlot];
+
+    //Move all buffs one slot left
+    for(int i = deBuffSlot; i < deBuffCounter-1; i++){
+        deBuffs[i] = deBuffs[i+1];
+    }
+    deBuffCounter--;
+    
+}
+
+
+void Monster::print(void) {
     cout << "((Monster <" << getName() << ">))" << endl
     << "Level: "<< getLevel() << endl
     << "Life: " << getHp() << "/" << getMaxHp() << endl
@@ -466,6 +886,8 @@ void Monster::print(void) const{
     <<  this->currentDmg.ub << endl
     << "Defence: " << this->current.defence << endl
     << "Dodge: "  << this->current.dodge << endl;
+
+    printDeBuffs();
 }
 
 

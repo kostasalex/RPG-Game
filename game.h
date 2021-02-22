@@ -3,8 +3,6 @@
 #include "living.h"
 #include "grid.h"
 
-template<typename T>
-bool inputHandler(T &input, T options[], int size);
 
 class Game{
   
@@ -58,14 +56,16 @@ class Market{
         Armor **armors;
 
         Spell **spells;
+
+        Potion **potions;
         
         int productCounter[3];
         
         void showItems(int type);
 
     public:
-        enum type{weapon , armor, spell};
-        static std::string productType[3];
+        enum type{weapon , armor, spell, potion};
+        static std::string productType[4];
 
         Market();
         ~Market();
@@ -73,7 +73,7 @@ class Market{
         /* Returns -1 if no product selected */
         int selectProduct(int type); 
 
-        bool buy(Item *item, int &money);
+        int buy(Item *item);
 
         Item* sell(int type, int id, int &money, int heroLvl);
 
@@ -98,9 +98,10 @@ class Combat{
         void heroesTurn(void);
 
         void monstersTurn(void);
+
         int getRandTarget(void);
 
-        void regeneration(void);
+        void endOfRound(void);
 
         enum resutl{ stillFighting, heroesWon, monstersWon};
         int fightResult(void);
@@ -117,7 +118,7 @@ class Combat{
 
         int gainExp(int heroLvl);
 
-        void reviveHeroes(void);
+        void reviveHeroes(bool receivePenalty);
 
 
 
