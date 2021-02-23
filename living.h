@@ -45,14 +45,13 @@ class Living{
 
 
         /* Virtual functions*/
-        virtual void print(void) = 0;
-
         virtual int attack(Living *living) const = 0; 
 
         virtual int receiveDamage(int damage) = 0;
         /* Descrease  round for buffs / debuffs */
         virtual void roundPass(void) = 0;
 
+        virtual void displayStats(void) const = 0;
         //virtual int regeneration(void) = 0;
 
 
@@ -138,8 +137,6 @@ class Hero : public Living{
 
         int inventoryAdd(Item *item);
 
-        void printBuffs(void) const;
-
 
 
         void removeBuff(int buffType);
@@ -193,6 +190,8 @@ class Hero : public Living{
           this->base.agi += agi;
         }
 
+        void printBuffs(void) const;
+
     public:
         static const int startingStr = 10;
         static const int startingDex = 10;
@@ -227,7 +226,7 @@ class Hero : public Living{
         //Returns true if an item equipped / or potions drinked
         bool checkInventory(bool equip = false, bool drinkPotion = false);
 
-        void checkStats(void) const;
+        virtual void displayStats(void) const = 0;
 
 
 
@@ -243,20 +242,17 @@ class Hero : public Living{
 
 
 
-   
-
-        void print(void) override;
 
         /* Inline functions */        
-        inline int getBaseStr(void){ return this->base.str; }
-        inline int getBaseDex(void){ return this->base.dex; }   
-        inline int getBaseAgi(void){ return this->base.agi; }       
+        inline int getBaseStr(void) const { return this->base.str; }
+        inline int getBaseDex(void) const { return this->base.dex; }   
+        inline int getBaseAgi(void) const { return this->base.agi; }       
 
-        inline int getStr(void){ return this->current.str; }
-        inline int getDex(void){ return this->current.dex; }  
-        inline int getAgi(void){ return this->current.agi; }   
+        inline int getStr(void) const { return this->current.str; }
+        inline int getDex(void) const { return this->current.dex; }  
+        inline int getAgi(void) const { return this->current.agi; }   
 
-        inline int getExp(void){ return this->experience; }
+        inline int getExp(void)const{ return this->experience; }
 
         inline int getInventorySize(void) const{return this->inventory->getSize();}
 
@@ -264,10 +260,8 @@ class Hero : public Living{
 
 
 
-
-
-        inline int getMp(void){ return this->mp; }
-        inline int getMaxMp(void){ return this->maxMp; }     
+        inline int getMp(void) const { return this->mp; }
+        inline int getMaxMp(void) const { return this->maxMp; }     
 
 
 };
@@ -281,6 +275,7 @@ class Warrior : public Hero{
         static const int additionalAgi = 5;
         Warrior(std::string name);
         ~Warrior();
+        void displayStats(void)  const override;
 };
 
 class Sorcerer : public Hero{
@@ -290,6 +285,7 @@ class Sorcerer : public Hero{
         static const int additionalAgi = 5;
         Sorcerer(std::string name);
         ~Sorcerer();
+        void displayStats(void) const override;
 };
 
 class Paladin : public Hero{
@@ -299,6 +295,7 @@ class Paladin : public Hero{
         static const int additionalDex = 5;
         Paladin(std::string name);
         ~Paladin();
+        void displayStats(void) const override;
 };
 
 
@@ -310,6 +307,8 @@ class Monster : public Living{
         static const int startingDodge = 10;
         static const int startingDmg = 50;
         static const int damageRange = 50;
+        static const int statsPerLevel = 2;
+        static const int damagePerLevel = 10;
 
         struct dmg{ //Damage range 
             int lb; //Lower bound
@@ -332,8 +331,6 @@ class Monster : public Living{
 
         void removeDeBuff(int deBuffSlot);
 
-        void printDeBuffs(void) const;
-
         void goUnconscious(void);
 
         static constexpr double regenRate = 0.03;
@@ -343,6 +340,9 @@ class Monster : public Living{
         int deBuffCounter;
         struct Buff *deBuffs[maxDeBuffs];
     protected:
+
+        void printDeBuffs(void) const;
+
         /* Inline functions */
         inline void addBaseDmg(int damage)
         {
@@ -382,15 +382,22 @@ class Monster : public Living{
         {current.dodge = ((current.dodge  - points) < 0)? 0 \
                            : (current.dodge  - points); }
 
+        inline int getDmgLb(void) const{return currentDmg.lb;}
+
+        inline int getDmgUb(void) const{return currentDmg.ub;}
+
+        inline int getDef(void) const{return current.defence;}
+
+        inline int getDodge(void) const{return current.dodge;}
     public:
 
         /* Constructor - Destructor */
-        Monster(std::string name);
+        Monster(std::string name, int additionalLevel);
         virtual ~Monster();
 
-        
-        /* Override functions */
-        void print(void) override;
+
+
+        virtual void displayStats(void) const = 0;
 
         int attack(Living *living) const override;
 
@@ -410,29 +417,34 @@ class Monster : public Living{
 class Dragon : public Monster{
 
     public:
-        static const int additionalDmg = 20;
+        static const int additionalDmg = 30;
 
-        Dragon(std::string name);
+        Dragon(std::string name, int additionalLevel);
         ~Dragon();
 
+        void displayStats(void) const override;
 };
 
 class Exoskeleton : public Monster{
 
     public:
-        static const int additionalDef = 20;
+        static const int additionalDef = 10;
 
-        Exoskeleton(std::string name);
+        Exoskeleton(std::string name, int additionalLevel);
         ~Exoskeleton();
+
+        void displayStats(void) const override;
 };
 
 class Spirit : public Monster{
 
     public:
-        static const int additionalDodge = 20;
+        static const int additionalDodge = 10;
 
-        Spirit(std::string name);
+        Spirit(std::string name, int additionalLevel);
         ~Spirit();
+
+        void displayStats(void) const override;
 };
 
 #endif

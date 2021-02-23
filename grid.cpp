@@ -164,7 +164,7 @@ Grid::Grid(){
 
     cout << heroesNum <<" Heroes created: " << endl << endl;
     for(int i = 0; i < heroesNum; i++){
-        heroes[i]->print();
+        heroes[i]->displayStats();
         cout << endl;
     }
 }
@@ -209,16 +209,22 @@ void Grid::play(void){
 
             case 2: //Select a hero to check inventory / stats
                 if(this->heroesNum > 1){
-                for(int i = 0; i < this->heroesNum; i++)
-                    cout << "[" << i << "] : " << heroes[i]->getName() << endl;
-                
-                cout << "Hero:";
-                while(inputHandler(heroIndex, options, this->heroesNum) == false);
+                    for(int i = 0; i < this->heroesNum; i++)
+                        cout << "[" << i << "] : " << heroes[i]->getName()
+                             << endl;
+                    
+                    cout << "Hero:";
+                    while(inputHandler(heroIndex, options, this->heroesNum)
+                     == false);
                 }
-                else cout << "Preselected hero " << heroes[0]->getName() << endl;
+                else{
+                    heroIndex = 0;
+                    cout << "Preselected hero " << heroes[heroIndex]->getName() 
+                        << endl;
+                }
                 while(1){
                     cout << "[1] Check inventory " << endl
-                        << "[2] Check stats "<< endl
+                        << "[2] Display stats "<< endl
                         << "[0] Go back " << endl
                         << ">";
 
@@ -232,8 +238,7 @@ void Grid::play(void){
 
                     if(input == 2)
                     {
-                        cout << heroes[heroIndex]->getName() << endl;
-                        heroes[heroIndex]->checkStats();
+                        heroes[heroIndex]->displayStats();
                         cout << endl;
                     }
                     else if(input == 1)
@@ -743,11 +748,11 @@ void Common::combat(void){
     }
 
     for(int i = 0; i < heroesNum; i++){
-        heroes[i]->print();
+        heroes[i]->displayStats();
         cout << endl;
     }
     for(int i = 0; i < monstersNum; i++){
-        monsters[i]->print();
+        monsters[i]->displayStats();
         cout << endl;
     }
 }
@@ -761,9 +766,28 @@ void Common::initCombat(void){
     this->monstersNum = heroesNum;
     this->monsters = new Monster*[heroesNum];
 
+    int additionalLvl;
+
     for(int i = 0; i < this->monstersNum; i++){
       //*Temporary just one type of monster
-      this->monsters[i] = new Dragon("Dragon" + to_string(i));
+        additionalLvl = heroes[i]->getLevel() - 1;
+        switch(rand()%3){
+            case 0:
+                this->monsters[i] = 
+                new Dragon("Dragon" + to_string(i), additionalLvl);
+                break;
+
+            case 1:
+                this->monsters[i] = 
+                new Exoskeleton("Exoskeleton" + to_string(i), additionalLvl);
+                break;     
+
+            case 2:
+                this->monsters[i] = 
+                new Spirit("Spirit" + to_string(i), additionalLvl);
+                break; 
+
+        }
     }
     
     cout << "A new combat is about to start ..!!" << endl;
@@ -871,7 +895,7 @@ void Common::heroesTurn(void){
             
             while(1){ //>>Menu 3
                 if(availableHeroes[heroIndex])break;//Go back
-                if(select == 4)break;
+                if(select == 0)break;
 
                 else if(availableMobsCount > 1){
                 
@@ -902,12 +926,12 @@ void Common::heroesTurn(void){
                     cout << "1. Attack" << endl
                         << "2. Cast Spell" << endl
                         << "3. Display stats" << endl
-                        << "4. Go back" << endl
+                        << "0. Go back" << endl
                         <<">";
 
-                    while(inputHandler(select, &options[1], 4) == false);
+                    while(inputHandler(select, options, 4) == false);
 
-                    if(select == 4)break;
+                    if(select == 0)break;
                     if(select == 1)heroes[heroIndex]->attack(monsters[monsterIndex]);
                     else if(select == 2){
                     
@@ -940,7 +964,7 @@ void Common::heroesTurn(void){
                         == false)continue; //Go back
                     }
                     else if(select == 3){
-                        monsters[monsterIndex]->print();
+                        monsters[monsterIndex]->displayStats();
                         continue;
                     }
                     //If hero use spell, attack , equip weapon/armor, drink potion 
@@ -952,7 +976,7 @@ void Common::heroesTurn(void){
 
         }
         else if(select == 2){
-            heroes[heroIndex]->checkStats();
+            heroes[heroIndex]->displayStats();
             cout << endl;
         }
 
@@ -984,12 +1008,12 @@ void Common::monstersTurn(void){
     /*cout << "Press Enter to Continue";
     cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
     cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
-    cout << endl;
+    cout << endl;*/
 
     this->monsters[i]->attack(heroes[target]);
     cout << endl;
 
-    cout << "Press Enter to Continue";
+    /*cout << "Press Enter to Continue";
     cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
     cout << endl;*/
   }
