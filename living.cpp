@@ -2,7 +2,7 @@
 #include <time.h>    
 #include "living.h"
 #include "spell.h"
-#include "utils.h"
+#include "inputHandler.h"
 #include "buff.h"
 
 using namespace std;

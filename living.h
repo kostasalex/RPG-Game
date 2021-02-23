@@ -272,6 +272,8 @@ class Hero : public Living{
 
 };
 
+
+
 class Warrior : public Hero{
     
     public:
