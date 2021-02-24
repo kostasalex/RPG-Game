@@ -7,8 +7,18 @@
 class Grid{
     
     private:
-        /* Blocks of grid */
 
+        const std::string gameLogo[7] = {
+        "=================================",
+        "||     Rpg game started!!      ||",
+        "||                             ||",
+        "||       /|________________    ||",
+        "|| O|===|* >________________>  ||",
+        "||       \\|                    ||",
+        "================================="
+        };
+
+        /* Blocks of grid */
         class Market **markets;
         int marketsNum;
 
@@ -51,9 +61,11 @@ class Grid{
 
         bool move(void);
 
-        void display(void);
+        void display(void) const;
 
-        void displayMap(void) const;
+
+        void printLogo(void);
+
 
     public:
         Grid();
@@ -127,6 +139,18 @@ class Market : public Block{
         enum type{weapon , armor, spell, potion};
         static std::string productType[4];
 
+        const std::string logo[8] = 
+        {
+            "  _______________",
+            "  |=============|",
+            "  |___|Market|__|",
+            "  |     ____    | ",
+            "  |  [] | _| [] |",
+            "  |     |  |    |",
+            "  vvvvvvvvvvvvvvvv",
+            "______________________"
+        };
+
         std::string name;
 
         Weapon **weapons;
@@ -149,7 +173,7 @@ class Market : public Block{
         /* Market selling to hero spells */
         Spell* sell(int id, int &money, int heroLvl);
 
-
+        void printLogo(void) const;
     public:
     
         Market();
@@ -160,7 +184,7 @@ class Market : public Block{
             return true;
         }
         void interactWith(Hero **heroes, int heroesNum)override;
-    
+
         std::string display(void){return "test";}
 
 };

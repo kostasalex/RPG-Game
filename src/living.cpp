@@ -312,8 +312,9 @@ void Hero::buy(Item *item){
                 cout << item->getName() << " successfully purchased!!" << endl; 
                 inventoryAdd(item);
             }
-            else cout << item->getName() << " requires level "
-                      << item->getLevel() << endl;
+            else cout << item->getName() << " requires "
+                      << item->getLevel()-getLevel() 
+                      << " more levels" << endl;
         }
     else cout << item->getPrice()- getMoney() << " gold is missing!" << endl;
     }

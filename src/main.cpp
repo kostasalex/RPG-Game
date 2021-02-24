@@ -5,7 +5,7 @@
 int main(void){
     //Market market;
     srand(time(NULL));
-    Grid game;
-    game.play();
+    Grid grid;
+    grid.play();
 
 }

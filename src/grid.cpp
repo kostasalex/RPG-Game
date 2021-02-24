@@ -12,9 +12,9 @@ const char Grid::direction[5] = {'w', 's', 'a', 'd', 'b'};
 
 const char Grid::defaultMap[defaultHeight][defaultWidth] = 
                                       {{' ', ' ', ' ', '#'},
-                                      {' ', ' ',' ', '#'},
-                                      {' ', ' ', 'M', '#'},
-                                      {' ', ' ', ' ', '#'}};
+                                      {' ', '#','M', '#'},
+                                      {' ', ' ', ' ', '#'},
+                                      {' ', ' ', '#', '#'}};
 
 Grid::Grid(){
 
@@ -53,19 +53,7 @@ Grid::Grid(){
     
         }
     }
-
-    string gameLogo[7] = {
-        "=================================",
-        "||     Rpg game started!!      ||",
-        "||                             ||",
-        "||       /|________________    ||",
-        "|| O|===|* >________________>  ||",
-        "||       \\|                    ||",
-        "================================="
-    };
-    for(int i = 0; i < 7; i++){
-        cout << gameLogo[i] << endl;
-    }
+    printLogo();
     /* Create heroes */
 
     cout << "You can create " << maxHeroes << " heroes maximum.." << endl << endl;
@@ -94,10 +82,12 @@ Grid::Grid(){
 
             while(inputHandler(input, options, 2) == false);
 
-            //*debug*
-            //select = 0;
             if(input == 0)break;
         }
+        system("clear");
+
+
+        printLogo();
 
         cout << "Select a class :" << endl << endl;
         cout << "[1] Warrior    || A warrior class has additional strength and agility"
@@ -198,7 +188,7 @@ void Grid::play(void){
 
     while(1){
         system("clear");
-        displayMap();
+        display();
         cout << "[1] Move " << endl
             << "[2] Select A hero "<< endl
             << "[0] Exit game " << endl
@@ -238,6 +228,7 @@ void Grid::play(void){
                         << endl;
                 }
                 while(1){
+                    system("clear");
                     cout << "[1] Check inventory " << endl
                         << "[2] Display stats "<< endl
                         << "[0] Go back " << endl
@@ -260,6 +251,10 @@ void Grid::play(void){
                     {
                         heroes[heroIndex]->checkInventory(true);
                     }
+
+                    cout << "Press Enter to Continue";
+                    cin.ignore();
+                    cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
                 }
                 break;
             //End of case 2 select hero.
@@ -333,16 +328,18 @@ bool Grid::move(void){
 }
 
 
-void Grid::displayMap(void) const{
-
-    string block[5] = {"[__]","[_M]","[xx]", "[H_]", "[HM]"};
+void Grid::display(void) const{
+                                      
+    string block[5] = {"   |"," |M|"," ##|", "H  |", "H|M|"};
+    cout << endl <<  "-----------------" << endl;
 
     for(int i = 0; i < this->height; i++){
         for(int j = 0; j < this->width; j++){
+            if(j == 0)cout <<"|";
             switch(defaultMap[i][j]){
                 case ' ':
                     if(heroesLoc.isSame(i,j) == true){
-                        cout << block[3];
+                        cout <<block[3];
                     }
                     else cout << block[0];
                     break;
@@ -357,11 +354,18 @@ void Grid::displayMap(void) const{
                     break;
             }
         }
-        cout << endl;
-    }
-
+        cout << endl <<  "-----------------" << endl;
+    }                     
+    //cout << "================" << endl;
     cout << endl;
 }
+
+void Grid::printLogo(void)
+{
+    for(int i = 0; i < 7; i++)
+        cout << gameLogo[i] << endl;
+}
+
 /****************************************************************************/
 
 
@@ -373,7 +377,9 @@ Block::~Block(){}
 string Market::productType[4] = {"weapon", "armor", "spell", "potion"};
 
 Market::Market(){
+   
 
+    
     this->name = "Default Market";
 
     string name, nameA, nameB, temp;
@@ -520,6 +526,13 @@ Market::~Market(){
 }
 
 
+void Market::printLogo(void) const
+{
+    for(int i = 0; i < 7; i++)
+        cout << logo[i] << endl;
+}
+
+
 void Market::interactWith(Hero **heroes, int heroesNum){
     
     addHeroes(heroes, heroesNum);
@@ -536,7 +549,7 @@ void Market::interactWith(Hero **heroes, int heroesNum){
     while(1){
 
         system("clear");
-        if(this->heroesNum == 1)heroIndex = 0;
+        if(heroesNum == 1)heroIndex = 0;
         else{
         cout << "[1] Select a hero to enter market " << endl
             << "[0] Exit store " << endl
@@ -545,31 +558,39 @@ void Market::interactWith(Hero **heroes, int heroesNum){
         while(inputHandler(input, options, 2) == false);
 
         if(input == 1){
-            for(int i = 0; i < this->heroesNum; i++)
+            for(int i = 0; i < heroesNum; i++)
             cout << "[" << i << "] : " << heroes[i]->getName() << endl;
 
             cout << "Hero: ";
-            while(inputHandler(heroIndex, options, this->heroesNum) == false);
+            while(inputHandler(heroIndex, options, heroesNum) == false);
         }
         else break; //Go back
         }
-        system("clear");
-        
-        cout << "Welcome to my store!!" << endl
-            << "What are you looking for?" << endl;
+
             
         hero = heroes[heroIndex];
         while(1){
-                
+            system("clear");
+            printLogo();
+            cout << "Welcome to my store!!" << endl
+            << "What are you looking for?" << endl;
             cout << "1. Buy " << endl
                 << "2. Sell" << endl
-                << "3. Exit store" << endl
-                <<"0. Enter store with another hero" << endl
+                << "3. Exit store" << endl;
+
+            if(heroesNum > 1){
+                cout
+                <<"4. Enter store with another hero" << endl
                 <<">";
+                while(inputHandler(select, &options[1], 4) == false);
+            }
+            else{
+                cout <<">";
+                while(inputHandler(select, &options[1], 4) == false);
+            }
 
-            while(inputHandler(select,options, 4) == false);
 
-            if(select == 0)break;
+            if(select == 4)break;
             if(select == 3)return;
             goBack = false;
 
@@ -577,11 +598,12 @@ void Market::interactWith(Hero **heroes, int heroesNum){
                 
             /* Buy a product from market */
             case 1:
-                cout << "What do you want to buy?" << endl;
                 while(1){
 
                     if(goBack == true)break;
-                            
+                    system("clear");
+                    printLogo();
+                    cout << "What do you want to buy?" << endl;
                     /* Product categories */
                     cout << "0. Weapon" << endl
                         << "1. Armor" << endl
@@ -600,6 +622,7 @@ void Market::interactWith(Hero **heroes, int heroesNum){
                     else if(select == 5)return; // Exit
                     
                     else{ // 0 - 2: Select a product from the selected category 
+                        system("clear");
                         productId = selectProduct(select);
                         if(productId == -1)continue;
                     }
@@ -611,15 +634,20 @@ void Market::interactWith(Hero **heroes, int heroesNum){
                         case Market::weapon:
                         case Market::armor:
                         case Market::potion: //Any item:
-                        hero->buy(\
-                            sell(productType, productId, money, hero->getLevel()));
-                        break;
+                            hero->buy(\
+                                sell(productType, productId, money, hero->getLevel()));
+                            cout << "Press Enter to Continue";
+                            cin.ignore();
+                            cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
+                            break;
 
                         case Market::spell:
-                        
-                        hero->buy(\
-                            sell(productId, money, hero->getLevel()));
-                        break;
+                            hero->buy(\
+                                sell(productId, money, hero->getLevel()));
+                            cout << "Press Enter to Continue";
+                            cin.ignore();
+                            cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
+                            break;
 
                         case 4: //Go back
                         goBack = true;
@@ -633,42 +661,52 @@ void Market::interactWith(Hero **heroes, int heroesNum){
             case 2:
                 if(hero->getInventorySize() == 0){
                 cout << "Your inventory is empty!" << endl;
+                cout << "Press Enter to Continue";
+                cin.ignore();
+                cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
                 continue;
                 }
                 while(1){
-                if(hero->getInventorySize() == 0){
-                    cout << "Your inventory is empty!" << endl;
-                    break; //Go back
+                    if(hero->getInventorySize() == 0){
+                        cout << "Your inventory is empty!" << endl;
+                        break; //Go back
+                    }
+                    system("clear");
+                    printLogo();
+
+                    hero->checkInventory();
+                    cout << 
+                    "Select id of item to sell or any other number to go back\n\n"
+                    << "Sell item: ";
+
+                    int inventorySize = hero->getInventorySize();
+                    int inventorySlots[inventorySize];
+                    for(int i = 0; i < inventorySize; i++)inventorySlots[i] = i;
+                    int inventorySlot;
+                    select = -1;
+                    while(inputHandler(inventorySlot, inventorySlots, inventorySize)
+                     == false){
+                        if(hero->getInventorySize() == 0)break;
+                        cout << "1. Select another item " << endl;
+                        cout << "0. Go back " << endl;
+
+                        while(inputHandler(select, options, 2) == false);
+                        break; //Go back
+                        
+                    }
+                    if(select == 0)break; //Go back
+                    else if(select == 1)continue; //Select another item
+
+                    /* Inventory slot given is valid, sell item */
+                    hero->pickUp(\
+                        buy(\
+                            hero->sell(inventorySlot)));
                 }
-
-                cout << "Select item to sell" << endl;
-                hero->checkInventory();
-
-                int inventorySize = hero->getInventorySize();
-                int inventorySlots[inventorySize];
-                for(int i = 0; i < inventorySize; i++)inventorySlots[i] = i;
-
-                while(inputHandler(select, inventorySlots, inventorySize) == false){
-                    if(hero->getInventorySize() == 0)break;
-                    cout << "1. Select another item " << endl;
-                    cout << "0. Go back " << endl;
-
-                    while(inputHandler(select, options, 2) == false);
-                    break; //Go back
-                    
-                }
-                if(select == 0)break; //Go back
-                else if(select == 1)continue; //Select another item
-
-                /* Inventory slot given is valid, sell item */
-                int inventorySlot = select;
-                hero->pickUp(\
-                    buy(\
-                        hero->sell(inventorySlot)));
-                }
+                cout << "Press Enter to Continue";
+                cin.ignore();
+                cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
                 break;
                 //End of case 2: sell item to market
-
             }
         }
     }
@@ -680,33 +718,37 @@ void Market::showItems(int type){
     switch(type){
       case weapon:
         for(int i = 0; i < this->productCounter[weapon]; i++){
-          cout << "______" << i << "______" << endl;
-          weapons[i]->print(); 
-          cout << endl;
+            cout << "_[" << i << "]_" << endl; 
+                // << "___________________" << endl;
+            weapons[i]->print(); 
+            cout << "======================" << endl << endl;
         }
         break;
 
       case armor:
         for(int i = 0; i < this->productCounter[armor]; i++){
-          cout << "__" << i << "__" << endl;
-          armors[i]->print(); 
-          cout << endl;
+            cout << "[" << i << "]" << endl
+                 << "===================" << endl;
+            armors[i]->print(); 
+            cout << "===================" << endl;
         }
         break;
 
       case spell:
         for(int i = 0; i < this->productCounter[spell]; i++){
-          cout << "__" << i << "__" << endl;
-          spells[i]->print(); 
-          cout << endl;
+            cout << "[" << i << "]" << endl
+                 << "=====================" << endl;
+            spells[i]->print(); 
+            cout << endl;
         }
         break;
 
       case potion:
         for(int i = 0; i < this->productCounter[potion]; i++){
-          cout << "______" << i << "______" << endl;
-          potions[i]->print(); 
-          cout << endl;
+            cout << "[" << i << "]" << endl
+                 << "===================" << endl;
+            potions[i]->print(); 
+            cout << "===================" << endl;
         }
         break;
 
@@ -715,26 +757,31 @@ void Market::showItems(int type){
 
 
 int Market::selectProduct(int type){
-  
-  cout << "Select " << this->productType[type] << " :" << endl; 
- 
-  int select; 
+    int select = -1, input = -1;
+    while(1){
+        system("clear");
+        cout << "Select " << this->productType[type] << " :\n\n"; 
+        
+        showItems(type); 
 
-  this->showItems(type); 
+        cout << "Type weapon id or any other number to go back\n\n";
+        cout << this->productType[type] << " :"; 
 
-  int productSlots[productCounter[type]];
-  for(int i = 0; i < productCounter[type]; i++)productSlots[i] = i;
-  
-  while(inputHandler(select, productSlots, productCounter[type]) == false){
-    cout << "1. Select another item " << endl
-         << "0. Go back " << endl
-         <<">";
-    while(inputHandler(select, options, 2) == false);
-    if(select == 0){
-      select = -1;
-      break;
+        int productSlots[productCounter[type]];
+        for(int i = 0; i < productCounter[type]; i++)productSlots[i] = i;
+        
+        while(inputHandler(select, productSlots, productCounter[type]) == false){
+            cout << "\n1. Select another " << this->productType[type] << endl
+                << "0. Go back \n" 
+                <<">";
+            while(inputHandler(input, options, 2) == false);
+            if(input == 0)
+                return -1;
+            else break;
+        }
+        if(input != 1)break;
     }
-  }
+
 
   return select;
 } 
