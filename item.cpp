@@ -245,23 +245,16 @@ void Inventory::print(void) const{
     cout << "-----------------------------------" << endl;
     
     int i = 0;
-    //or auto (*item)->print();
-    bool hasItems = false;
-    cout << items.size() << endl;
     
     for (auto item = items.begin(); item != items.end(); item++, i++) {
         cout << "inventory slot[" << i << "]: "
              << (*item)->getName() << endl; 
-        hasItems = true;
-        //?better print just name (*item)->print();
     }
 
-    if(hasItems == true)
+    if(items.size() > 0)
         cout << "-----------------------------------" << endl;
 
     cout << "money: " << money << endl;
 
     cout << "-----------------------------------" << endl;
 }
-
-

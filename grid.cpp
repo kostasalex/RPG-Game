@@ -213,9 +213,9 @@ void Grid::play(void){
                 //is valid direction
                 if(move() == true){
                     if(blocks[heroesLoc.x][heroesLoc.y]->\
-                    access(heroes, heroesNum)){
-                        blocks[heroesLoc.x][heroesLoc.y]->interactWith();
-                        blocks[heroesLoc.x][heroesLoc.y]->leaveBlock();            
+                    access()){
+                        blocks[heroesLoc.x][heroesLoc.y]->interactWith(heroes, heroesNum);
+                        blocks[heroesLoc.x][heroesLoc.y]->leave();            
                     }
                 }
                 break;
@@ -318,7 +318,7 @@ bool Grid::move(void){
 
         /* Check if new block is accessible */ 
         if(inGrid == true){  //If yes change heroes location
-            if(blocks[x][y]->access(heroes, heroesNum) == true){
+            if(blocks[x][y]->access() == true){
                 heroesLoc.setLoc(x,y);
                 return true;
             }
@@ -427,7 +427,9 @@ Market::~Market(){
 }
 
 
-void Market::interactWith(void){
+void Market::interactWith(Hero **heroes, int heroesNum){
+    
+    addHeroes(heroes, heroesNum);
 
     if(heroes == nullptr){
         cout << "There is no heroes in Market block\n";
@@ -469,12 +471,13 @@ void Market::interactWith(void){
             cout << "1. Buy " << endl
                 << "2. Sell" << endl
                 << "3. Exit store" << endl
-                <<"0. Go back" << endl
+                <<"0. Enter store with another hero" << endl
                 <<">";
 
-            while(inputHandler(select,options, 3) == false);
+            while(inputHandler(select,options, 4) == false);
 
             if(select == 0)break;
+            if(select == 3)return;
             goBack = false;
 
             switch(select){
@@ -573,8 +576,6 @@ void Market::interactWith(void){
                 break;
                 //End of case 2: sell item to market
 
-            case 3://Exit store;
-                return;
             }
         }
     }
@@ -694,7 +695,21 @@ Spell* Market::sell(int id, int &money, int heroLvl){
 
 
 /* Block common implementation */
-void Common::interactWith(void){
+Common::Common(void){
+    combat = nullptr;
+}
+
+
+Common::~Common(void){
+
+    for(int i = 0; i < (int)itemsDropped.size(); i++)
+        delete itemsDropped[i];
+
+    itemsDropped.clear();
+}
+
+
+void Common::interactWith(Hero **heroes, int heroesNum){
 
     if(heroes == nullptr){
         cout << "There is no heroes in Common block\n";
@@ -703,75 +718,16 @@ void Common::interactWith(void){
     
     if(isPeacefull() == true)return;
 
-    initCombat();
+    combat = new Combat(heroes, heroesNum);
+    combat->start();
 
-    combat();
-
+    delete combat;
 }
 
 
-void Common::combat(void){
-
-    while(combatResult() == stillFighting){
-        
-        cout << endl 
-        << "===============================================================" 
-        <<  endl << endl <<"                  ***    Round "
-        << this->round << "   ***" << endl << endl;
-        cout
-        << "===================== Heroes turn =============================" 
-        << endl;
-        heroesTurn();
-
-        cout << endl;
-        cout
-        << "==================== Monsters turn ============================" 
-        << endl;
-        monstersTurn();
-        cout << endl;
-
-        cout 
-        << "____________________End of round " 
-        << this->round <<                      "___________________________"
-        << endl;
-
-        endOfRound();
-
-    }
-    cout << "Fight ended! " << endl;
-
-    int results = combatResult();
-    bool receivePenalty;
-
-    if(results == heroesWon){
-        cout << "Heroes won !" << endl
-        << "+++++++++++++++++++ Combat Rewards ++++++++++++++++++++++++++++"
-        << endl;
-        
-        receivePenalty = false;
-        reviveHeroes(receivePenalty);
-        receiveRewards();
-    }
-    else if(results == monstersWon){
-        cout << "Heroes lost !" << endl
-        << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-        << endl;
-        receivePenalty = true;
-        reviveHeroes(receivePenalty);
-    }
-
-    for(int i = 0; i < heroesNum; i++){
-        heroes[i]->displayStats();
-        cout << endl;
-    }
-    for(int i = 0; i < monstersNum; i++){
-        monsters[i]->displayStats();
-        cout << endl;
-    }
-}
-
-
-void Common::initCombat(void){
+Combat::Combat(Hero **heroes,int heroesNum){
+    
+    addHeroes(heroes, heroesNum);
 
     this->round = 0;
 
@@ -808,7 +764,80 @@ void Common::initCombat(void){
 }
 
 
-void Common::heroesTurn(void){
+Combat::~Combat(void){
+
+    for(int i = 0; i < monstersNum; i++)
+        delete monsters[i];
+
+    delete[] monsters;
+}
+
+
+void Combat::start(void){
+    
+
+    while(result() == stillFighting){
+        
+        cout << endl 
+        << "===============================================================" 
+        <<  endl << endl <<"                  ***    Round "
+        << this->round << "   ***" << endl << endl;
+        cout
+        << "===================== Heroes turn =============================" 
+        << endl;
+        heroesTurn();
+
+        cout << endl;
+        cout
+        << "==================== Monsters turn ============================" 
+        << endl;
+        monstersTurn();
+        cout << endl;
+
+        cout 
+        << "____________________End of round " 
+        << this->round <<                      "___________________________"
+        << endl;
+
+        endOfRound();
+
+    }
+    cout << "Combat ended! " << endl;
+    int results = result();
+    bool receivePenalty;
+
+    if(results == heroesWon){
+        cout << "Heroes won !" << endl
+        << "+++++++++++++++++++ Combat Rewards ++++++++++++++++++++++++++++"
+        << endl;
+        
+        receivePenalty = false;
+        reviveHeroes(receivePenalty);
+        receiveRewards();
+    }
+    else if(results == monstersWon){
+        cout << "Heroes lost !" << endl
+        << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        << endl;
+        receivePenalty = true;
+        reviveHeroes(receivePenalty);
+    }
+
+    for(int i = 0; i < heroesNum; i++){
+        heroes[i]->displayStats();
+        cout << endl;
+    }
+    for(int i = 0; i < monstersNum; i++){
+        monsters[i]->displayStats();
+        cout << endl;
+    }
+}
+
+
+
+
+
+void Combat::heroesTurn(void){
 
     enum availability{ available, notAvailable};
     
@@ -1000,7 +1029,7 @@ void Common::heroesTurn(void){
 }
 
 
-void Common::monstersTurn(void){
+void Combat::monstersTurn(void){
 
   int target;
   bool stillAlive = false;
@@ -1033,7 +1062,7 @@ void Common::monstersTurn(void){
 }
 
 
-int Common::getRandTarget(void){
+int Combat::getRandTarget(void){
   int target;
   //*debug
   cout << "Monster selecting a target.." << endl;
@@ -1045,7 +1074,7 @@ int Common::getRandTarget(void){
 }
 
 
-void Common::endOfRound(){
+void Combat::endOfRound(){
 
   this->round++;
 
@@ -1059,10 +1088,11 @@ void Common::endOfRound(){
 }
 
 
-int Common::combatResult(){
+int Combat::result(){
 
   bool monstersDead = true;
   bool heroesDead = true;
+
 
   for(int i = 0; i < this->heroesNum; i++){
     if(this->heroes[i]->getHp() != 0){
@@ -1085,7 +1115,7 @@ int Common::combatResult(){
 }
 
 
-void Common::receiveRewards(void){
+void Combat::receiveRewards(void){
 
   Item *item;
 
@@ -1102,7 +1132,7 @@ void Common::receiveRewards(void){
 }
 
 
-int Common::gainMoney(int heroLvl)
+int Combat::gainMoney(int heroLvl)
 {
   int result = 15;
   
@@ -1114,7 +1144,7 @@ int Common::gainMoney(int heroLvl)
 }
 
 
-Item* Common::gainItem(){
+Item* Combat::gainItem(){
 
   Item *item = nullptr;
 
@@ -1127,7 +1157,7 @@ Item* Common::gainItem(){
 }
 
 
-int Common::gainExp(int heroLvl)
+int Combat::gainExp(int heroLvl)
 {
   int result = 50;
   
@@ -1139,7 +1169,7 @@ int Common::gainExp(int heroLvl)
 }
 
 
-void Common::reviveHeroes(bool receivePenalty){
+void Combat::reviveHeroes(bool receivePenalty){
 
   for(int i = 0; i < this->heroesNum; i++){
     if(heroes[i]->getHp() == 0)heroes[i]->revive(receivePenalty);

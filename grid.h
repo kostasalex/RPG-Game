@@ -90,19 +90,17 @@ class Block{
         
         virtual ~Block() = 0;
 
-        virtual bool access(Hero **heroes, int heroesNum) = 0;
+        virtual bool access(void) = 0;
 
-        inline void leaveBlock(void){
+        inline void leave(void){
             heroes = nullptr;
             heroesNum = 0;
         }
 
-        virtual void interactWith(void) = 0;
+        virtual void interactWith(Hero **heroes, int heroesNum) = 0;
         
         virtual std::string display(void) = 0;
         
-        virtual void menu(void) = 0;
-
 
 };
 
@@ -114,14 +112,13 @@ class NonAccessive : public Block{
         NonAccessive(){}
         ~NonAccessive(){}
 
-        bool access(Hero **heroes, int heroesNum)override 
+        bool access(void)override 
         {return false;}
 
-        void interactWith(void)override {return;}
+        void interactWith(Hero **heroes, int heroesNum)override {return;}
         
         std::string display(void)override {return "test";}
 
-        void menu(void)override {}
 };
 
 
@@ -159,34 +156,55 @@ class Market : public Block{
         Market();
         ~Market();
 
-        bool access(Hero **heroes, int heroesNum)
+        bool access(void)override
         {
-            addHeroes(heroes, heroesNum);
             return true;
         }
-        
-        void interactWith(void)override;
+        void interactWith(Hero **heroes, int heroesNum)override;
     
         std::string display(void){return "test";}
 
-        void menu(void){}
 };
 
 
 class Common : public Block{
     
     private:
+        class Combat *combat;
+
+        std::vector <Item*> itemsDropped;
+
+        inline bool isPeacefull(void){return rand()%3 != 0;}
+
+    protected:
+
+        void addItem(Item *item){itemsDropped.push_back(item);}
+
+    public:
+
+        Common();
+        ~Common();
+
+        bool access(void)override
+        {
+            return true;
+        }
+        
+        void interactWith(Hero **heroes, int heroesNum);
+
+        std::string display(void)override {return "test";
+        }
+
+};
+
+
+class Combat : public Common{
+
+    private:
         int monstersNum;
         Monster **monsters;
 
         int round;
-
-        /* Fight ends when all heroes or all monster die */
-        void combat(void);
-
-        void initCombat(void);
-
-        inline bool isPeacefull(void){return rand()%3 != 0;}
 
         /* Combat actions */
         void heroesTurn(void);
@@ -198,7 +216,7 @@ class Common : public Block{
         void endOfRound(void);
 
         enum resutl{ stillFighting, heroesWon, monstersWon};
-        int combatResult(void);
+        int result(void);
 
 
         /* After combat actions*/
@@ -214,19 +232,15 @@ class Common : public Block{
 
     public:
 
-        Common(){}
-        ~Common(){}
+        Combat(Hero **heroes, int heroesNum);
+        ~Combat();
 
-        bool access(Hero **heroes, int heroesNum)
+        bool access(void)
         {
-            addHeroes(heroes, heroesNum);
             return true;
         }
         
-        void interactWith(void);
+        /* Combat ends when all heroes or all monster die */
+        void start(void);
 
-        std::string display(void)override {return "test";
-        }
-
-        void menu(void)override {}
 };
