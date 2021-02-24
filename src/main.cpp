@@ -1,11 +1,11 @@
 #include <iostream>
 #include <ctime>
-#include "game.h"
+#include "grid.h"
 
 int main(void){
     //Market market;
     srand(time(NULL));
-    Game game;
+    Grid game;
     game.play();
 
 }

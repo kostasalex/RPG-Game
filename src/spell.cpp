@@ -1,6 +1,6 @@
 #include <time.h>    
 #include "spell.h"
-#include "buff.h"
+
 
 using namespace std;
 

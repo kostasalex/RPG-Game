@@ -1,33 +1,46 @@
 EXECUTABLE = rpg
 
+BUILD = build
+SRC = src
+INC = include
+
+
+SOURCE = $(wildcard $(SRC)/*.cpp)
+	
+OBJECT = $(patsubst %,$(BUILD)/%, $(notdir $(SOURCE:.cpp=.o)))
+
 CC = g++
-CFLAGS = -c -g -Wall
+CFLAGS = -Wall -g -I$(INC)
 
-
-$(EXECUTABLE): game.o living.o item.o grid.o spell.o main.o
-	@echo " Compile rpg ...";
-	$(CC) -o $(EXECUTABLE) game.o living.o item.o grid.o spell.o main.o
-
-main.o: main.cpp game.h
-	$(CC) $(CFLAGS) main.cpp
+GREEN = \033[1;32m
+BLUE = \033[1;34m
+YELLOW = \033[1;33m
+NC = \033[1;0m
 	
-game.o: game.cpp game.h utils.h
-	$(CC) $(CFLAGS) game.cpp
 	
-living.o: living.cpp living.h utils.h
-	$(CC) $(CFLAGS) living.cpp	
+$(BUILD)/$(EXECUTABLE) : $(OBJECT)
+	@echo "$ Compiling...$(NC)"
+	$(CC) -o $@ $^
+	
+$(BUILD)/%.o : $(SRC)/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
 
-grid.o: grid.cpp grid.h
-	$(CC) $(CFLAGS) grid.cpp
 
-item.o: item.cpp item.h
-	$(CC) $(CFLAGS) item.cpp
 
-spell.o: spell.cpp spell.h
-	$(CC) $(CFLAGS) spell.cpp
+.PHONY: run valgrind clean
 
-.phony: clean
 
-clean:
-	@echo " Cleaning . . ."
-	rm -f *.o $(EXECUTABLE)
+run: $(BUILD)/$(EXECUTABLE)
+	@echo "$(GREEN) Executing..$(NC)"
+	$(BUILD)/$(EXECUTABLE)
+	
+	
+valgrind: $(BUILD)/$(EXECUTABLE)
+	@echo "$(YELLOW)👓️ Debugging..$(NC)"
+	valgrind ./$(BUILD)/$(EXECUTABLE)	
+	
+	
+clean: 
+	@echo "$(BLUE)🧹 Cleaning..$(NC)"
+	rm -f $(OBJECT) $(BUILD)/$(EXECUTABLE)
+	

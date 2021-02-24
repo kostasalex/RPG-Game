@@ -48,6 +48,7 @@ class Potion : public Item{
         int rounds; //Buff duration
 
         static const std::string buffNames[3];
+        static const std::string statTypeMsg[3];
     public:
         enum statsType{strength, dexterity, agility};
         static const int potionTypes = 3;

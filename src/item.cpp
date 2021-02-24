@@ -22,6 +22,7 @@ Item::~Item ()
 
 
 /* Subclass *Potion* implementation */
+const string Potion::statTypeMsg[3] = {"strength", "dexterity", "agility"};
 
 Potion::Potion(string name, int stat, \
 int price, int points, int requiredLevel) : 
@@ -40,7 +41,7 @@ Potion::~Potion(){
     
     //*debug
     cout << "A potion to be destructed!!" << endl;
-    print();
+    //print();
 
 }
 
@@ -56,7 +57,8 @@ Buff *Potion::drink(void){
 void Potion::print() const{
     
     cout << "Potion: " << getName() << endl
-         << "Adding " << points << " points to " << stat << endl 
+         << "Adding " << points << " points to " 
+         << statTypeMsg[stat] << endl 
          << "Required level: " << getLevel() << endl
          << "Price: " << getPrice() << endl;
 }
@@ -77,7 +79,7 @@ Weapon::~Weapon(){
     
     //*debug
     cout << "A weapon to be destructed!!" << endl;
-    print();
+    //print();
 
 }
 
@@ -104,7 +106,7 @@ Armor::~Armor(){
     
     //*debug
     cout << "An armor to be destructed!!" << endl;
-    print();
+    //print();
 
 }
 
@@ -135,7 +137,7 @@ Inventory::Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money)
 Inventory::~Inventory(){
     //*debug
     cout << "An inventory to be destructed!!" << endl;
-    print();
+    //print();
 }
 
 
@@ -245,23 +247,16 @@ void Inventory::print(void) const{
     cout << "-----------------------------------" << endl;
     
     int i = 0;
-    //or auto (*item)->print();
-    bool hasItems = false;
-    cout << items.size() << endl;
     
     for (auto item = items.begin(); item != items.end(); item++, i++) {
         cout << "inventory slot[" << i << "]: "
              << (*item)->getName() << endl; 
-        hasItems = true;
-        //?better print just name (*item)->print();
     }
 
-    if(hasItems == true)
+    if(items.size() > 0)
         cout << "-----------------------------------" << endl;
 
     cout << "money: " << money << endl;
 
     cout << "-----------------------------------" << endl;
 }
-
-

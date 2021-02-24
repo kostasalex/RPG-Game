@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <iostream>
+#include "buff.h"
 
 class Spell{
 
@@ -31,7 +32,7 @@ class Spell{
 
         virtual ~Spell() = 0;
 
-        virtual struct Buff* cast(int dexterity, int &damage) = 0;
+        virtual Buff* cast(int dexterity, int &damage) = 0;
 
         void virtual print(void) = 0;
 
@@ -67,7 +68,7 @@ class IceSpell : public Spell{
 
         ~IceSpell();
 
-        struct Buff* cast(int dexterity, int &damage)override;
+        Buff* cast(int dexterity, int &damage)override;
 
         void print(void) override;
 
@@ -83,7 +84,7 @@ class FireSpell : public Spell{
         
         ~FireSpell();
 
-        struct Buff* cast(int dexterity, int &damage)override;
+        Buff* cast(int dexterity, int &damage)override;
 
         void print(void) override;
 
