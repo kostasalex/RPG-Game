@@ -2,7 +2,7 @@
 #include <time.h>    
 #include "living.h"
 #include "spell.h"
-#include "utils.h"
+#include "inputHandler.h"
 #include "buff.h"
 
 using namespace std;
@@ -36,20 +36,25 @@ Hero::Hero(string name) : Living(name){
     experience = startingExperience;
     
     int damage = 1000, price = 10, requiredLvl = 1;
-    Weapon *weapon = 
+    starterWeapon = 
     new Weapon("Wooden Sword", damage, price, requiredLvl, Weapon::oneHanded);
 
     int defence = 15; price = 20;
-    Armor *armor = new Armor("Wooden Armor", defence, price, requiredLvl);
+    starterArmor = 
+    new Armor("Wooden Armor", defence, price, requiredLvl);
     
-    int money = startingMoney;
-    this->inventory = new Inventory(weapon, armor, money);
+    this->inventory = 
+    new Inventory(starterWeapon, starterArmor, startingMoney);
 }
 
 
 Hero::~Hero(){
     for(int i = 0; i < buffCounter; i++)
         delete buffs[i];
+
+    delete starterWeapon;
+    delete starterArmor;
+    delete inventory;
 }
 
 
@@ -350,13 +355,14 @@ bool Hero::findSpell(Spell *spell){
 bool Hero::checkInventory(bool equip, bool drinkPotion){
     
     inventory->print();
-    int size;
+    int size = 1;
 
     if(inventory->getSize() != 0 ){
 
         if(equip == true){
             cout << "[1] Equip Item" << endl;
             size = 2;
+        
         }
         if(drinkPotion == true){
             cout << "[2] Drink a potion "<< endl;
@@ -413,24 +419,6 @@ bool Hero::checkInventory(bool equip, bool drinkPotion){
 
 } 
 
-
-void Hero::checkStats(void) const{
-
-    cout << "==================================" << endl
-    << "Level: "<< getLevel() << endl
-    << "Experience: " << this->experience << "/" << "100" << endl
-    << "Life: " << getHp() << "/" << getMaxHp() << endl
-    << "Mana: " << this->mp << "/" << this->maxMp << endl
-    << endl << "----------------------------------" << endl
-    << ">> Strength: " << this->current.str << endl
-    << ">> Dexterity: " << this->current.dex  << endl
-    << ">> Agility: "  << this->current.agi  << endl 
-    << "==================================" << endl << endl;
-
-    printBuffs();
-
-
-}
 
 
 int Hero::inventoryAdd(Item *item){
@@ -580,28 +568,11 @@ void Hero::removeBuff(int buffSlot){
     buffCounter--;
 }
 
-
-void Hero::print(void){
-    cout << "||Hero <" << getName() << ">||" << endl
-    << "Level: "<< getLevel() << endl
-    << "Experience: " << this->experience << "/" << "100" << endl
-    << "Life: " << getHp() << "/" << getMaxHp() << endl
-    << "Mana: " << this->mp << "/" << this->maxMp << endl
-    << endl << "* Stats *" << endl
-    << ">> Strength: " << this->current.str << endl
-    << ">> Dexterity: " << this->current.dex  << endl
-    << ">> Agility: "  << this->current.agi  << endl << endl;
-    this->checkInventory();
-    this->checkSpells();
-    this->printBuffs();
-}
-
-
 /* Subclass of Hero -> *Warrior* implementation */
 
 Warrior::Warrior(string name) : Hero(name){
     //*Debug
-    cout << "Warrior " << name << " successfully created!!\n";
+    cout << "==}== Warior => " << name << " successfully created!!\n";
     //Inscrease strength and agility
     addBaseStats(additionalStr,0,additionalAgi);
     addStats(additionalStr,0,additionalAgi);
@@ -612,11 +583,34 @@ Warrior::~Warrior(){
 }
 
 
+void Warrior::displayStats(void) const{
+
+cout
+    << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << " *==}::::::> warrior <::::::{==* " << endl
+    << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << "           " << getName() << endl
+    <<  "=================================" << endl
+    << "||  Level: "<< getLevel() << endl
+    << "||  Experience: " << getExp() << "/" << "100" << endl
+    << "||  Life: " << getHp() << "/" << getMaxHp() << endl
+    << "||  Mana: " << getMp() << "/" << getMaxMp() << endl
+    <<  "=================================" << endl
+    << "||  Strength: " <<  getStr()<< endl
+    << "||  Dexterity: " << getDex()  << endl
+    << "||  Agility: "  << getAgi()  << endl 
+    << "=================================" << endl << endl;
+
+    checkSpells();
+    printBuffs();
+}
+
+
 /* Subclass of Hero -> *Sorcerer* implementation */
 
 Sorcerer::Sorcerer(string name) : Hero(name){
     //*Debug
-    cout << "Sorcerer " << name << " successfully created!!\n";
+    cout << "_/^\\_Sorcerer_/^\\_" << name << " successfully created!!\n";
     //Inscrease dexterity and agility
     addBaseStats(0,additionalDex,additionalAgi);
     addStats(0,additionalDex,additionalAgi);
@@ -627,11 +621,34 @@ Sorcerer::~Sorcerer(){
 }
 
 
+void Sorcerer::displayStats(void) const{
+
+    cout 
+    << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << " _ * ._/^\\_ Sorcerer _/^\\_. *_ " << endl
+    << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << "           " << getName() << endl
+    <<  "=================================" << endl
+    << "||  Level: "<< getLevel() << endl
+    << "||  Experience: " << getExp() << "/" << "100" << endl
+    << "||  Life: " << getHp() << "/" << getMaxHp() << endl
+    << "||  Mana: " << getMp() << "/" << getMaxMp() << endl
+    <<  "=================================" << endl
+    << "||  Strength: " <<  getStr()<< endl
+    << "||  Dexterity: " << getDex()  << endl
+    << "||  Agility: "  << getAgi()  << endl 
+    << "=================================" << endl << endl;
+
+    checkSpells();
+    printBuffs();
+}
+
+
 /* Subclass of Hero -> *Paladin* implementation */
 
 Paladin::Paladin(string name) : Hero(name){
     //*Debug
-    cout << "Paladin " << name << " successfully created!!\n";
+    cout << "|*| Paladin |^|  " << name << " successfully created!!\n";
     //Inscrease strength and dexterity
     addBaseStats(additionalStr,additionalDex,0);
     addStats(additionalStr,additionalDex,0);
@@ -642,18 +659,42 @@ Paladin::~Paladin(){
 }
 
 
+void Paladin::displayStats(void) const{
+
+    cout 
+    << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << "       (|+|) Paladin (|+|) " <<  endl
+    << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << "           " << getName() << endl
+    <<  "=================================" << endl
+    << "||  Level: "<< getLevel() << endl
+    << "||  Experience: " << getExp() << "/" << "100" << endl
+    << "||  Life: " << getHp() << "/" << getMaxHp() << endl
+    << "||  Mana: " << getMp() << "/" << getMaxMp() << endl
+    <<  "=================================" << endl
+    << "||  Strength: " <<  getStr()<< endl
+    << "||  Dexterity: " << getDex()  << endl
+    << "||  Agility: "  << getAgi()  << endl 
+    << "=================================" << endl << endl;
+
+    checkSpells();
+    printBuffs();
+}
+
 /* Subclass of Living -> *Monster* implementation */
 
-Monster::Monster(string name) : Living(name){
-    //*Debug
-    cout << "Becoming a monster..!" << endl;
+Monster::Monster(string name, int level) : Living(name){
 
+    addLevel(level);
     //Init damage
+    int damage = startingDmg + (level * damagePerLevel);
     baseDmg = currentDmg = 
-    {startingDmg, startingDmg + damageRange};
+    {damage, damage + damageRange};
 
     //Init stats: defence dodge
-    base = current = {startingDef, startingDodge};
+    int def = startingDef + (level * statsPerLevel);
+    int dodge = startingDodge + (level * statsPerLevel);
+    base = current = {def, dodge};
 
     deBuffCounter = 0;
 
@@ -855,26 +896,12 @@ void Monster::removeDeBuff(int deBuffSlot){
 }
 
 
-void Monster::print(void) {
-    cout << "((Monster <" << getName() << ">))" << endl
-    << "Level: "<< getLevel() << endl
-    << "Life: " << getHp() << "/" << getMaxHp() << endl
-    << endl << "* Stats *" << endl
-
-    << "Damage: " << this->currentDmg.lb << " - " 
-    <<  this->currentDmg.ub << endl
-    << "Defence: " << this->current.defence << endl
-    << "Dodge: "  << this->current.dodge << endl;
-
-    printDeBuffs();
-}
-
 
 /* Subclass of Monster -> *Dragon* implementation */
 
-Dragon::Dragon(string name) : Monster(name){
-    //*Debug
-    cout << "Becoming a Dragon..!" << endl;
+Dragon::Dragon(string name, int level) : Monster(name, level){
+
+    cout << "A wild dragon appeared out of the sky..!!" << endl;
 
     //Inscrease the damage
     addBaseDmg(additionalDmg);
@@ -884,15 +911,35 @@ Dragon::Dragon(string name) : Monster(name){
 
 Dragon::~Dragon(){
     //*Debug
-    cout << "A dragon to be destroyed " << endl;
+    cout << "A dragon dissapeared!! " << endl;
 }
 
 
+void Dragon::displayStats(void) const{
+
+cout
+    << "---------------------------------" << endl
+    << " /^.^^.^\\_  Dragon  _//^.^^.^\\ "  << endl
+    << "---------------------------------" << endl
+    << "           " << getName() << endl
+    <<  "=================================" << endl
+    << "||  Level: "<< getLevel() << endl
+    << "||  Life: " << getHp() << "/" << getMaxHp() << endl
+    <<  "==================================" << endl
+    << "||  Damage: " << getDmgLb() << " - " 
+    <<  getDmgUb() << endl
+    << "||  Defence: " << getDef() << endl
+    << "||  Dodge: "  << getDodge() << endl
+    << "==================================" << endl << endl;
+
+    printDeBuffs();
+}
+
 /* Subclass of Monster -> *Exoskeleton* implementation */
 
-Exoskeleton::Exoskeleton(string name) : Monster(name){
+Exoskeleton::Exoskeleton(string name, int level) : Monster(name, level){
     //*Debug
-    cout << "Becoming a Dragon..!" << endl;
+    cout << "A wild exoskeleton appeared out of shadows..!!" << endl;
 
     //Inscrease defence
     addBaseStats(additionalDef,0);
@@ -901,15 +948,35 @@ Exoskeleton::Exoskeleton(string name) : Monster(name){
 
 Exoskeleton::~Exoskeleton(){
     //*Debug
-    cout << "An exoskeleton to be destroyed " << endl;
+    //*Debug
+    cout << "An exoskeleton dissapeared!! " << endl;
+}
+
+void Exoskeleton::displayStats(void) const{
+
+cout
+    << "---------------------------------" << endl
+    << "   |====|= Exoskeleton =|====| "  << endl
+    << "---------------------------------" << endl
+    << "         " << getName() << endl
+    <<  "=================================" << endl
+    << "||  Life: " << getHp() << "/" << getMaxHp() << endl
+    <<  "==================================" << endl
+    << "||  Damage: " << getDmgLb() << " - " 
+    <<  getDmgUb() << endl
+    << "||  Defence: " << getDef() << endl
+    << "||  Dodge: "  << getDodge() << endl
+    << "==================================" << endl << endl;
+
+    printDeBuffs();
 }
 
 
 /* Subclass of Monster -> *Spirit* implementation */
 
-Spirit::Spirit(string name) : Monster(name){
+Spirit::Spirit(string name, int level) : Monster(name, level){
     //*Debug
-    cout << "Becoming a Dragon..!" << endl;
+    cout << "A wild spirit came out of thin air..!!" << endl;
 
     //Inscrease dodge
     addBaseStats(0,additionalDodge);
@@ -919,5 +986,25 @@ Spirit::Spirit(string name) : Monster(name){
 
 Spirit::~Spirit(){
     //*Debug
-    cout << "A spirit to be destroyed " << endl;
+    cout << "A spirit dissapeared!!" << endl;
+}
+
+void Spirit::displayStats(void) const{
+
+    cout 
+    << "---------------------------------" << endl
+    << "   ~~~~~~~ Spirit ~~~~~~~  " << endl
+    << "---------------------------------" << endl
+    << "           " << getName() << endl
+    << "==================================" << endl
+    << "||  Level: "<< getLevel() << endl
+    << "||  Life: " << getHp() << "/" << getMaxHp() << endl
+    <<  "==================================" << endl
+    << "||  Damage: " << getDmgLb() << " - " 
+    <<  getDmgUb() << endl
+    << "||  Defence: " << getDef() << endl
+    << "||  Dodge: "  << getDodge() << endl
+    << "==================================" << endl << endl;
+    
+    printDeBuffs();
 }

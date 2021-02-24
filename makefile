@@ -4,17 +4,15 @@ CC = g++
 CFLAGS = -c -g -Wall
 
 
-$(EXECUTABLE): game.o living.o item.o grid.o spell.o main.o
+$(EXECUTABLE): living.o item.o grid.o spell.o main.o
 	@echo " Compile rpg ...";
-	$(CC) -o $(EXECUTABLE) game.o living.o item.o grid.o spell.o main.o
+	$(CC) -o $(EXECUTABLE) living.o item.o grid.o spell.o main.o
 
-main.o: main.cpp game.h
+main.o: main.cpp grid.h
 	$(CC) $(CFLAGS) main.cpp
+
 	
-game.o: game.cpp game.h utils.h
-	$(CC) $(CFLAGS) game.cpp
-	
-living.o: living.cpp living.h utils.h
+living.o: living.cpp living.h inputHandler.h
 	$(CC) $(CFLAGS) living.cpp	
 
 grid.o: grid.cpp grid.h
