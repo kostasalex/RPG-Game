@@ -36,20 +36,25 @@ Hero::Hero(string name) : Living(name){
     experience = startingExperience;
     
     int damage = 1000, price = 10, requiredLvl = 1;
-    Weapon *weapon = 
+    starterWeapon = 
     new Weapon("Wooden Sword", damage, price, requiredLvl, Weapon::oneHanded);
 
     int defence = 15; price = 20;
-    Armor *armor = new Armor("Wooden Armor", defence, price, requiredLvl);
+    starterArmor = 
+    new Armor("Wooden Armor", defence, price, requiredLvl);
     
-    int money = startingMoney;
-    this->inventory = new Inventory(weapon, armor, money);
+    this->inventory = 
+    new Inventory(starterWeapon, starterArmor, startingMoney);
 }
 
 
 Hero::~Hero(){
     for(int i = 0; i < buffCounter; i++)
         delete buffs[i];
+
+    delete starterWeapon;
+    delete starterArmor;
+    delete inventory;
 }
 
 
@@ -580,9 +585,11 @@ Warrior::~Warrior(){
 
 void Warrior::displayStats(void) const{
 
-    cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
-    << "   ==}== Warior => " << getName() << endl
+cout
     << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << " *==}::::::> warrior <::::::{==* " << endl
+    << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << "           " << getName() << endl
     <<  "=================================" << endl
     << "||  Level: "<< getLevel() << endl
     << "||  Experience: " << getExp() << "/" << "100" << endl
@@ -616,9 +623,11 @@ Sorcerer::~Sorcerer(){
 
 void Sorcerer::displayStats(void) const{
 
-    cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
-    << "   _/^\\_Sorcerer_/^\\_ " << getName() << endl
+    cout 
     << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << " _ * ._/^\\_ Sorcerer _/^\\_. *_ " << endl
+    << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << "           " << getName() << endl
     <<  "=================================" << endl
     << "||  Level: "<< getLevel() << endl
     << "||  Experience: " << getExp() << "/" << "100" << endl
@@ -652,9 +661,11 @@ Paladin::~Paladin(){
 
 void Paladin::displayStats(void) const{
 
-    cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
-    << "   |*| Paladin |^| " << getName() << endl
+    cout 
     << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << "       (|+|) Paladin (|+|) " <<  endl
+    << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl
+    << "           " << getName() << endl
     <<  "=================================" << endl
     << "||  Level: "<< getLevel() << endl
     << "||  Experience: " << getExp() << "/" << "100" << endl
@@ -906,10 +917,12 @@ Dragon::~Dragon(){
 
 void Dragon::displayStats(void) const{
 
-    cout << "---------------------------------" << endl
-    << "  ^^__Dragon__^^ " << getName()  << endl
+cout
     << "---------------------------------" << endl
-    << "==================================" << endl
+    << " /^.^^.^\\_  Dragon  _//^.^^.^\\ "  << endl
+    << "---------------------------------" << endl
+    << "           " << getName() << endl
+    <<  "=================================" << endl
     << "||  Level: "<< getLevel() << endl
     << "||  Life: " << getHp() << "/" << getMaxHp() << endl
     <<  "==================================" << endl
@@ -926,7 +939,7 @@ void Dragon::displayStats(void) const{
 
 Exoskeleton::Exoskeleton(string name, int level) : Monster(name, level){
     //*Debug
-    cout << "A wild exoskeleton appeared out of the shadows!!" << endl;
+    cout << "A wild exoskeleton appeared out of shadows..!!" << endl;
 
     //Inscrease defence
     addBaseStats(additionalDef,0);
@@ -940,11 +953,13 @@ Exoskeleton::~Exoskeleton(){
 }
 
 void Exoskeleton::displayStats(void) const{
-    cout << "---------------------------------" << endl
-    << "|== Exoskeleton ==| " << getName()  << endl
+
+cout
     << "---------------------------------" << endl
-    << "==================================" << endl
-    << "||  Level: "<< getLevel() << endl
+    << "   |====|= Exoskeleton =|====| "  << endl
+    << "---------------------------------" << endl
+    << "         " << getName() << endl
+    <<  "=================================" << endl
     << "||  Life: " << getHp() << "/" << getMaxHp() << endl
     <<  "==================================" << endl
     << "||  Damage: " << getDmgLb() << " - " 
@@ -961,7 +976,7 @@ void Exoskeleton::displayStats(void) const{
 
 Spirit::Spirit(string name, int level) : Monster(name, level){
     //*Debug
-    cout << "A wild spirit came out of thin air..!" << endl;
+    cout << "A wild spirit came out of thin air..!!" << endl;
 
     //Inscrease dodge
     addBaseStats(0,additionalDodge);
@@ -976,9 +991,11 @@ Spirit::~Spirit(){
 
 void Spirit::displayStats(void) const{
 
-    cout << "---------------------------------" << endl
-    << "~~ Spirit ~~ " << getName()  << endl
+    cout 
     << "---------------------------------" << endl
+    << "   ~~~~~~~ Spirit ~~~~~~~  " << endl
+    << "---------------------------------" << endl
+    << "           " << getName() << endl
     << "==================================" << endl
     << "||  Level: "<< getLevel() << endl
     << "||  Life: " << getHp() << "/" << getMaxHp() << endl

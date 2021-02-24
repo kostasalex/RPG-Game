@@ -172,8 +172,21 @@ Grid::Grid(){
 
 Grid::~Grid(){
 
+    for(int i = 0; i < marketsNum; i++){
+        delete markets[i];
+    }
+    
+    delete[] markets;
+    delete nonAccessive;
+    delete common;
 
+    for(int i = 0; i < heroesNum; i++)
+        delete heroes[i];
 
+    for(int i = 0; i < height; i++)
+        delete[] blocks[i];
+    
+    delete[] blocks;
 }
 
 

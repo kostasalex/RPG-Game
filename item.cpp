@@ -40,7 +40,7 @@ Potion::~Potion(){
     
     //*debug
     cout << "A potion to be destructed!!" << endl;
-    print();
+    //print();
 
 }
 
@@ -77,7 +77,7 @@ Weapon::~Weapon(){
     
     //*debug
     cout << "A weapon to be destructed!!" << endl;
-    print();
+    //print();
 
 }
 
@@ -104,7 +104,7 @@ Armor::~Armor(){
     
     //*debug
     cout << "An armor to be destructed!!" << endl;
-    print();
+    //print();
 
 }
 
@@ -135,7 +135,7 @@ Inventory::Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money)
 Inventory::~Inventory(){
     //*debug
     cout << "An inventory to be destructed!!" << endl;
-    print();
+    //print();
 }
 
 

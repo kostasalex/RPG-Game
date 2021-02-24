@@ -104,6 +104,9 @@ class Hero : public Living{
         int maxMp;
         int experience;
 
+        Weapon *starterWeapon;
+        Armor *starterArmor;
+
         Inventory *inventory;
 
         enum stats{strength, dexterity, agility};
