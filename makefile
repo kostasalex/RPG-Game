@@ -5,6 +5,7 @@ SRC = src
 INC = include
 
 
+<<<<<<< HEAD
 SOURCE = $(wildcard $(SRC)/*.cpp)
 	
 OBJECT = $(patsubst %,$(BUILD)/%, $(notdir $(SOURCE:.cpp=.o)))
@@ -24,6 +25,18 @@ $(BUILD)/$(EXECUTABLE) : $(OBJECT)
 	
 $(BUILD)/%.o : $(SRC)/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
+=======
+$(EXECUTABLE): living.o item.o grid.o spell.o main.o
+	@echo " Compile rpg ...";
+	$(CC) -o $(EXECUTABLE) living.o item.o grid.o spell.o main.o
+
+main.o: main.cpp grid.h
+	$(CC) $(CFLAGS) main.cpp
+
+	
+living.o: living.cpp living.h inputHandler.h
+	$(CC) $(CFLAGS) living.cpp	
+>>>>>>> main
 
 
 
