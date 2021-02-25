@@ -35,4 +35,6 @@ bool inputHandler(T &input, const T options[], int size){
 
 int getFileLines(std::ifstream& file);
 
+void pressEnterToContinue(bool flag = true);
+
 #endif

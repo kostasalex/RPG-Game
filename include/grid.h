@@ -7,8 +7,8 @@
 class Grid{
     
     private:
-
-        const std::string gameLogo[7] = {
+        static const int logoSize = 7;
+        const std::string gameLogo[logoSize] = {
         "=================================",
         "||     Rpg game started!!      ||",
         "||                             ||",
@@ -62,7 +62,6 @@ class Grid{
         bool move(void);
 
         void display(void) const;
-
 
         void printLogo(void);
 
@@ -128,7 +127,7 @@ class NonAccessive : public Block{
 
         void interactWith(Hero **heroes, int heroesNum)override {return;}
         
-        std::string display(void)override {return "test";}
+        std::string display(void)override {return "";}
 
 };
 
@@ -139,7 +138,8 @@ class Market : public Block{
         enum type{weapon , armor, spell, potion};
         static std::string productType[4];
 
-        const std::string logo[8] = 
+        static const int logoSize = 8;
+        const std::string logo[logoSize] = 
         {
             "  _______________",
             "  |=============|",
@@ -147,8 +147,8 @@ class Market : public Block{
             "  |     ____    | ",
             "  |  [] | _| [] |",
             "  |     |  |    |",
-            "  vvvvvvvvvvvvvvvv",
-            "______________________"
+            "vvvvvvvvvvvvvvvvvvvvvv",
+            "______________________\n"
         };
 
         std::string name;
@@ -234,13 +234,14 @@ class Combat : public Common{
 
         void monstersTurn(void);
 
-        int getRandTarget(void);
+        int getRandTarget(int monsterIndex);
 
         void endOfRound(void);
 
         enum resutl{ stillFighting, heroesWon, monstersWon};
         int result(void);
 
+        void print(int lSelected, int rSelected, bool heroTurn = true);
 
         /* After combat actions*/
         void receiveRewards(void);
@@ -252,6 +253,7 @@ class Combat : public Common{
         int gainExp(int heroLvl);
 
         void reviveHeroes(bool receivePenalty);
+
 
     public:
 

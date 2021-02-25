@@ -57,7 +57,7 @@ Buff *Potion::drink(void){
 void Potion::print() const{
     
     cout << "Potion: " << getName() << endl
-         << "Adding " << points << " points to " 
+         << "Effect: +" << points << " " 
          << statTypeMsg[stat] << endl 
          << "Required level: " << getLevel() << endl
          << "Price: " << getPrice() << endl;
@@ -86,7 +86,7 @@ Weapon::~Weapon(){
 void Weapon::print()const {
 
     cout << "Weapon: " << getName() << endl
-         << "With damage " << this->damage << endl 
+         << "Damage: " << this->damage << endl 
          << "Required level: " << getLevel() << endl
          << "Price: " << getPrice() << endl;
 
@@ -113,7 +113,7 @@ Armor::~Armor(){
 void Armor::print()const {
 
     cout << "Armor: " << getName() << endl
-         << "With defence " << this->defence << endl 
+         << "Defence: " << this->defence << endl 
          << "Required level: " << getLevel() << endl
          << "Price: " << getPrice() << endl;
 

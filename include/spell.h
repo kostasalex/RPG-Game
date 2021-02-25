@@ -101,7 +101,7 @@ class LightingSpell : public Spell{
 
         ~LightingSpell();
 
-        struct Buff* cast(int dexterity, int &damage)override;
+        Buff* cast(int dexterity, int &damage)override;
 
         void print(void) override;
 

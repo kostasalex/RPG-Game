@@ -57,8 +57,8 @@ void IceSpell::print(void) {
     cout << "*IceSpell " << this->getName() << "*" << endl
     << "Damage: " << this->getLbDmg() << " - " 
     <<  this->getUbDmg() << endl
-    <<  "Descrease enemy's damage by " << this->getPoints() << endl
-    << "requires " << this->getMp() << "mp" << endl
+    <<  "Effect: -" << this->getPoints() <<" damage" << endl
+    << "Mp cost: " << this->getMp() << endl
     << "Price:" << this->getPrice() << endl;
 
 }
@@ -98,14 +98,14 @@ void FireSpell::print(void) {
     cout << "*FireSpell " << this->getName() << "*" << endl
     << "Damage: " << this->getLbDmg() << " - " 
     <<  this->getUbDmg() << endl
-    <<  "Descrease enemy's defence by " << this->getPoints() << endl
-    << "requires " << this->getMp() << "mp" << endl
+    <<  "Effect: -" << this->getPoints() <<" defence" << endl
+    << "Mp cost: " << this->getMp() << endl
     << "Price:" << this->getPrice() << endl;
 
 }
 
 
-struct Buff* FireSpell::cast(int dexterity, int &damage){
+Buff* FireSpell::cast(int dexterity, int &damage){
 
     cout << "FireSpell casted!" << endl;
     
@@ -140,15 +140,15 @@ void LightingSpell::print(void) {
     cout << "*LightingSpell " << this->getName() << "*" << endl
     << "Damage: " << this->getLbDmg() << " - " 
     <<  this->getUbDmg() << endl
-    <<  "Descrease enemy's dodge by " << this->getPoints() << endl
-    << "requires " << this->getMp() << " mp" << endl
+    <<  "Effect: -" << this->getPoints() <<" dodge" << endl
+    << "Mp cost: " << this->getMp() << endl
     << "Level "  << this->getLevel() << endl
     << "Price:" << this->getPrice() << endl;
 
 }
 
 
-struct Buff* LightingSpell::cast(int dexterity, int &damage){
+Buff* LightingSpell::cast(int dexterity, int &damage){
 
     cout << "LightingSpell casted!" << endl;
     
