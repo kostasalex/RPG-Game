@@ -161,19 +161,20 @@ void Hero::receiveExperience(int exp){
     cout << getName() << " received "
          << exp << " experience!" << endl;
 
-    if(result >= maxExperience){
-        if(getLevel() == maxLevel){
-            result = maxExperience;
-        }
-        else{
-            result = (getExp() + exp) - maxExperience;
+    while(result >= maxExperience){
+
+        if(getLevel() != maxLevel){
             setExp(0);
             levelUp();
         }
-
+        else{
+            result = maxExperience;
+            break;
+        } 
+        result -=  maxExperience; 
     }
 
-    cout << getExp() << " --> " << result << endl;
+    cout << "Experience: " <<getExp() << " --> " << result  << endl;
     setExp(result);
 }
 
@@ -246,7 +247,7 @@ void Hero::levelUp(void){
     << "Life: " << getHp() << "/" << getMaxHp() << " --> "
     << getHp() + hpPerLevel << "/" << getMaxHp() + hpPerLevel << endl
     << "Mana: " << this->mp << "/" << this->maxMp << " --> "
-    << this->mp + mpPerLevel << "/" << this->maxMp + mpPerLevel << endl << endl;
+    << this->mp + mpPerLevel << "/" << this->maxMp + mpPerLevel << endl;
 
     addStats(statsPerLevel, statsPerLevel, statsPerLevel);
     addBaseStats(statsPerLevel, statsPerLevel, statsPerLevel);
