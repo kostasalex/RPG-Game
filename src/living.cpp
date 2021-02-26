@@ -19,8 +19,7 @@ Living::Living(string name)
     this->hp = this->maxHp = startingHp; 
 }
 
-Living::~Living(){
-}
+Living::~Living(){}
 
 
 /* Subclass of Living -> *Hero* implementation */
@@ -30,12 +29,14 @@ Hero::Hero(string name) : Living(name){
     this->current = 
     this->base = {startingStr, startingDex, startingAgi};
 
+    addMaxHp(additionalHp);addHp(additionalHp);
+
     buffCounter = 0;
 
     maxMp = mp = startingMp;
     experience = startingExperience;
     
-    int damage = 1000, price = 10, requiredLvl = 1;
+    int damage = 100, price = 10, requiredLvl = 1;
     starterWeapon = 
     new Weapon("Wooden Sword", damage, price, requiredLvl, Weapon::oneHanded);
 
@@ -117,7 +118,7 @@ int Hero::attack(Living *living) const{
 
     totalDmg += (this->current.str / 100.0) * totalDmg; 
     cout << this->getName() << " attacks " <<
-        living->getName() << endl;
+        living->getName() << ".."<< endl;
     
     living->receiveDamage(totalDmg);
     return totalDmg;
@@ -581,8 +582,7 @@ Warrior::Warrior(string name) : Hero(name){
 
 }
 
-Warrior::~Warrior(){
-}
+Warrior::~Warrior(){}
 
 
 void Warrior::displayStats(void) const{
@@ -611,8 +611,6 @@ cout
 /* Subclass of Hero -> *Sorcerer* implementation */
 
 Sorcerer::Sorcerer(string name) : Hero(name){
-    //*Debug
-    cout << "_/^\\_Sorcerer_/^\\_" << name << " successfully created!!\n";
     //Inscrease dexterity and agility
     addBaseStats(0,additionalDex,additionalAgi);
     addStats(0,additionalDex,additionalAgi);
@@ -649,8 +647,6 @@ void Sorcerer::displayStats(void) const{
 /* Subclass of Hero -> *Paladin* implementation */
 
 Paladin::Paladin(string name) : Hero(name){
-    //*Debug
-    cout << "|*| Paladin |^|  " << name << " successfully created!!\n";
     //Inscrease strength and dexterity
     addBaseStats(additionalStr,additionalDex,0);
     addStats(additionalStr,additionalDex,0);
@@ -688,6 +684,9 @@ void Paladin::displayStats(void) const{
 Monster::Monster(string name, int level) : Living(name){
 
     addLevel(level);
+    
+    addMaxHp(level * hpPerLevel);addHp(level * hpPerLevel);
+    
     //Init damage
     int damage = startingDmg + (level * damagePerLevel);
     baseDmg = currentDmg = 
@@ -714,8 +713,8 @@ int Monster::attack(Living *living) const{
     int totalDmg = this->currentDmg.lb + rand() % dmgRange;
 
 
-    cout << this->getName() << " attacks " <<
-        living->getName() << endl;
+    cout << this->getName() << " attacks " 
+         << living->getName()<< ".."<< endl;
     
     living->receiveDamage(totalDmg);
 
@@ -911,10 +910,7 @@ Dragon::Dragon(string name, int level) : Monster(name, level){
 
 }
 
-Dragon::~Dragon(){
-    //*Debug
-    cout << "A dragon dissapeared!! " << endl;
-}
+Dragon::~Dragon(){}
 
 
 void Dragon::displayStats(void) const{
@@ -949,8 +945,6 @@ Exoskeleton::Exoskeleton(string name, int level) : Monster(name, level){
 }
 
 Exoskeleton::~Exoskeleton(){
-    //*Debug
-    //*Debug
     cout << "An exoskeleton dissapeared!! " << endl;
 }
 
@@ -977,7 +971,7 @@ cout
 /* Subclass of Monster -> *Spirit* implementation */
 
 Spirit::Spirit(string name, int level) : Monster(name, level){
-    //*Debug
+
     cout << "A wild spirit came out of thin air..!!" << endl;
 
     //Inscrease dodge
@@ -987,7 +981,7 @@ Spirit::Spirit(string name, int level) : Monster(name, level){
 }
 
 Spirit::~Spirit(){
-    //*Debug
+
     cout << "A spirit dissapeared!!" << endl;
 }
 
