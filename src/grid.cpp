@@ -706,7 +706,7 @@ void Market::interactWith(Hero **heroes, int heroesNum){
                     else if(select == 1)continue; //Select another item
 
                     /* Inventory slot given is valid, sell item */
-                    hero->pickUp(\
+                    hero->receiveMoney(\
                         buy(\
                             hero->sell(inventorySlot)));
                 }

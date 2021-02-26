@@ -108,23 +108,40 @@ bool Hero::castSpell(int spellId, Living *living) {
 }
 
 
+int Hero::getDamage(void) const{
+    int result = 0;
+    Weapon *weapon = inventory->getWeapon();
+
+    if(weapon != nullptr){
+        result = weapon->getDamage();
+        result += (this->current.str / 100.0) * result; 
+    }
+    return result;
+}
+
+
 int Hero::attack(Living *living) const{
 
-    int totalDmg;
+    int damage = getDamage();
 
-    Weapon *weapon = this->inventory->getWeapon();
-    if(weapon == nullptr)totalDmg = 0;
-    else totalDmg = weapon->getDamage();
-
-    totalDmg += (this->current.str / 100.0) * totalDmg; 
     cout << this->getName() << " attacks " <<
         living->getName() << ".."<< endl;
     
-    living->receiveDamage(totalDmg);
-    return totalDmg;
+    living->receiveDamage(damage);
 
+    return damage;
 }
 
+
+int Hero::getDefence(void) const{
+    int result = 0;
+    Armor *armor = inventory->getArmor();
+
+    if(armor != nullptr)
+        result = armor->getDefence();
+    
+    return result;
+}
 
 
 int Hero::receiveDamage(int damage){
@@ -134,13 +151,10 @@ int Hero::receiveDamage(int damage){
     if(damageDealt > 0){
 
         if(rand()%100 > agility){
-            Armor *armor = this->inventory->getArmor();
-            if(armor != nullptr){
-                damageDealt -= (armor->getDefence() / 100.0) * damageDealt;
-                cout << this->getName() << " received " 
-                     << damageDealt << " damage!" <<  endl;
-                subHp(damageDealt);
-            }
+            damageDealt -= (getDefence() / 100.0) * damageDealt;
+            cout << this->getName() << " received " 
+                << damageDealt << " damage!" <<  endl;
+            subHp(damageDealt);
         }
         else{
             damageDealt = 0;
@@ -151,7 +165,6 @@ int Hero::receiveDamage(int damage){
     if(this->getHp() == 0)goUnconscious();
 
     return damageDealt;
-
 }
 
 
@@ -284,6 +297,15 @@ void Hero::pickUp(int money){
         addMoney(money);
         cout << getName() << " Picked up " 
         << money << " gold!!!" <<  endl;
+    }
+}
+
+
+void Hero::receiveMoney(int money){
+    if(money > 0){
+        addMoney(money);
+        cout << getName() << " Received " 
+        << money << " gold!!" <<  endl;
     }
 }
 
@@ -597,6 +619,9 @@ cout
     << "||  Experience: " << getExp() << "/" << "100" << endl
     << "||  Life: " << getHp() << "/" << getMaxHp() << endl
     << "||  Mana: " << getMp() << "/" << getMaxMp() << endl
+    <<  "=================================" << endl
+    << "||  Damage: " <<  getDamage()<< endl
+    << "||  Defence: " <<  getDefence()<< endl
     <<  "=================================" << endl
     << "||  Strength: " <<  getStr()<< endl
     << "||  Dexterity: " << getDex()  << endl

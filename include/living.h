@@ -52,8 +52,6 @@ class Living{
         virtual void roundPass(void) = 0;
 
         virtual void displayStats(void) const = 0;
-        //virtual int regeneration(void) = 0;
-
 
         /* Inline functions */
         inline std::string getName(void) const { return this->name; }
@@ -216,10 +214,16 @@ class Hero : public Living{
         void pickUp(Item *item);
 
         void pickUp(int money);
+
+        void receiveMoney(int money);
         //Descrease round of active buffs
         void roundPass(void) override;
 
         int attack(Living *living) const override;
+
+        int getDamage(void) const;
+
+        int getDefence(void) const;
 
         void revive(bool getPenalty = true);
         
@@ -247,7 +251,7 @@ class Hero : public Living{
 
 
 
-        /* Inline functions */        
+        /* Inline functions */     
         inline int getBaseStr(void) const { return this->base.str; }
         inline int getBaseDex(void) const { return this->base.dex; }   
         inline int getBaseAgi(void) const { return this->base.agi; }       
@@ -261,8 +265,6 @@ class Hero : public Living{
         inline int getInventorySize(void) const{return this->inventory->getSize();}
 
         inline int getSpellNum(void) const{return this->spells.size();}
-
-
 
         inline int getMp(void) const { return this->mp; }
         inline int getMaxMp(void) const { return this->maxMp; }     
