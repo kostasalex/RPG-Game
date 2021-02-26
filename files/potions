@@ -1,3 +1,6 @@
-Power potion 0 20 5 1
-Magic potion 1 20 5 1
+Power potion   0 20 5 1
+Magic potion   1 20 5 1
 Stealth potion 2 20 5 1
+Fire potion    0 40 7 4
+Caster potion  1 40 7 4
+Spirit potion  2 40 7 4
