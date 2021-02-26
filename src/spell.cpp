@@ -22,16 +22,9 @@ Spell::Spell(string name, int lb_damage, int pointsAffect, \
     this->mpCost = mpCost;
     this->rounds = (requiredLevel/2) + deBuffRounds;
     this->targetStat = stat;
-    //*Debug
-    cout << "A new spell constructed " << endl;
-
 }
 
-Spell::~Spell ()
-{
-    //*Debug
-    cout << "Spell " << this->name << " to be destructed!!" << endl;
-}
+Spell::~Spell (){}
 
 
 
@@ -39,17 +32,10 @@ IceSpell::IceSpell(string name, int lb_damage, int pointsAffect, int price, \
     int requiredLevel, int mpCost): 
     Spell(name, lb_damage, pointsAffect, price, requiredLevel, mpCost, damage)
 {
-    //*Debug
-    cout << "IceSpell created !" << endl; 
-    print();
 }
 
 
-IceSpell::~IceSpell(){
-    //*debug
-    cout << "An IceSpell to be destructed!!" << endl;
-    print();
-}
+IceSpell::~IceSpell(){}
 
 
 void IceSpell::print(void) {
@@ -57,10 +43,10 @@ void IceSpell::print(void) {
     cout << "*IceSpell " << this->getName() << "*" << endl
     << "Damage: " << this->getLbDmg() << " - " 
     <<  this->getUbDmg() << endl
+    << "Level: "  << this->getLevel() << endl
     <<  "Effect: -" << this->getPoints() <<" damage" << endl
     << "Mp cost: " << this->getMp() << endl
     << "Price:" << this->getPrice() << endl;
-
 }
 
 
@@ -80,17 +66,10 @@ FireSpell::FireSpell(string name, int lb_damage, int pointsAffect, int price, \
     int requiredLevel, int mpCost):
      Spell(name, lb_damage, pointsAffect, price, requiredLevel, mpCost, defence)
 {
-    //*Debug
-    cout << "FireSpell created !" << endl; 
-    print();
 }
 
 
-FireSpell::~FireSpell(){
-    //*debug
-    cout << "A FireSpell to be destructed!!" << endl;
-    print();
-}
+FireSpell::~FireSpell(){}
 
 
 void FireSpell::print(void) {
@@ -98,10 +77,10 @@ void FireSpell::print(void) {
     cout << "*FireSpell " << this->getName() << "*" << endl
     << "Damage: " << this->getLbDmg() << " - " 
     <<  this->getUbDmg() << endl
+    << "Level: "  << this->getLevel() << endl
     <<  "Effect: -" << this->getPoints() <<" defence" << endl
     << "Mp cost: " << this->getMp() << endl
     << "Price:" << this->getPrice() << endl;
-
 }
 
 
@@ -122,17 +101,10 @@ LightingSpell::LightingSpell(string name, int lb_damage, int pointsAffect, int p
     int requiredLevel, int mpCost): 
     Spell(name, lb_damage, pointsAffect, price, requiredLevel, mpCost, dodge)
 {
-    //*Debug
-    cout << "LightingSpell created !" << endl; 
-    print();
 }
 
 
-LightingSpell::~LightingSpell(){
-    //*debug
-    cout << "A LightingSpell to be destructed!!" << endl;
-    print();
-}
+LightingSpell::~LightingSpell(){}
 
 
 void LightingSpell::print(void) {
@@ -140,9 +112,9 @@ void LightingSpell::print(void) {
     cout << "*LightingSpell " << this->getName() << "*" << endl
     << "Damage: " << this->getLbDmg() << " - " 
     <<  this->getUbDmg() << endl
+    << "Level: "  << this->getLevel() << endl
     <<  "Effect: -" << this->getPoints() <<" dodge" << endl
     << "Mp cost: " << this->getMp() << endl
-    << "Level "  << this->getLevel() << endl
     << "Price:" << this->getPrice() << endl;
 
 }

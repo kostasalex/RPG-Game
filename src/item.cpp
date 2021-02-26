@@ -9,16 +9,9 @@ Item::Item(string name, int price, int requiredLevel)
     this->name = name;
     this->price = price;
     this->requiredLevel = requiredLevel;
-
-    //*Debug
-    cout << "A new item constructed " << endl;
 }
 
-Item::~Item ()
-{
-    //*Debug
-    cout << "Item " << this->name << " to be destructed!!" << endl;
-}
+Item::~Item (){}
 
 
 /* Subclass *Potion* implementation */
@@ -31,19 +24,9 @@ Item(name, price, requiredLevel)
     this->stat = stat;
     this->points = points;
     this->rounds = (requiredLevel/2) + buffRounds;
-
-    //*Debug
-    print();
-
 }
 
-Potion::~Potion(){
-    
-    //*debug
-    cout << "A potion to be destructed!!" << endl;
-    //print();
-
-}
+Potion::~Potion(){}
 
 
 const string Potion::buffNames[3] =
@@ -52,7 +35,6 @@ const string Potion::buffNames[3] =
 Buff *Potion::drink(void){
     return new Buff(buffNames[stat], rounds, stat, points);
 }
-
 
 void Potion::print() const{
     
@@ -75,13 +57,8 @@ int price, int requiredLevel, int handsRequired)
     print();
 }
 
-Weapon::~Weapon(){
-    
-    //*debug
-    cout << "A weapon to be destructed!!" << endl;
-    //print();
+Weapon::~Weapon(){}
 
-}
 
 void Weapon::print()const {
 
@@ -102,13 +79,8 @@ Armor::Armor(string name, int defence, int price, int requiredLevel)
     print();
 }
 
-Armor::~Armor(){
-    
-    //*debug
-    cout << "An armor to be destructed!!" << endl;
-    //print();
+Armor::~Armor(){}
 
-}
 
 void Armor::print()const {
 
@@ -134,15 +106,10 @@ Inventory::Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money)
 }
 
 
-Inventory::~Inventory(){
-    //*debug
-    cout << "An inventory to be destructed!!" << endl;
-    //print();
-}
+Inventory::~Inventory(){}
 
 
 void Inventory::disarmWeapon(void){
-
     if(this->weapon != nullptr){
         items.push_back(this->weapon);
         if(handSlot[0] == weapon)handSlot[0] = nullptr;
