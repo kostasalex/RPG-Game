@@ -165,6 +165,14 @@ Grid::Grid(){
 
 Grid::~Grid(){
 
+    system("clear");
+    cout << "<<< Game over!! >>>\n\n";
+    Combat::statistics();
+
+    cout << "\nPress enter to exit ";
+    std::cin.ignore();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+
     for(int i = 0; i < marketsNum; i++){
         delete markets[i];
     }
@@ -204,6 +212,7 @@ void Grid::play(void){
 
             case 1:
                 //is valid direction
+                system("clear");
                 if(move() == true){
                     if(blocks[heroesLoc.x][heroesLoc.y]->\
                     access()){
@@ -215,9 +224,11 @@ void Grid::play(void){
 
             case 2: //Select a hero to check inventory / stats
                 if(this->heroesNum > 1){
+                    system("clear");
+                    cout << "Hero selection\n\n";
                     for(int i = 0; i < this->heroesNum; i++)
                         cout << "[" << i << "]  " << heroes[i]->getName()
-                             << endl;
+                             << endl << endl;
                     
                     cout << "Hero:";
                     while(inputHandler(heroIndex, options, this->heroesNum)
@@ -225,11 +236,12 @@ void Grid::play(void){
                 }
                 else{
                     heroIndex = 0;
-                    cout << "\nPreselected hero " << heroes[heroIndex]->getName() 
-                        << endl << endl;
                 }
                 while(1){
                     system("clear");
+
+                    cout << "Selected hero: "<< heroes[heroIndex]->getName() << endl << endl;
+
                     cout << "[1] Check inventory " << endl
                         << "[2] Display stats "<< endl
                         << "[0] Go back " << endl
@@ -271,7 +283,8 @@ bool Grid::move(void){
     char input;
 
     while(1){
-
+        system("clear");
+        display();
         cout << "Where do you want to go? [w] = up, [s] = down, [a] = left, [d] = right"
             << endl << "Or 'b' to go back" << endl
             << "Direction: ";
@@ -320,6 +333,7 @@ bool Grid::move(void){
             }
         }
         cout << "Oops couldn't move there.." << endl;
+        pressEnterToContinue();
     }//End of while(1)
 
 
@@ -519,9 +533,6 @@ Market::~Market(){
   delete[] weapons;
   delete[] spells;
   delete[] potions;
-
-  cout << "Market " << name << " to be destructed" << endl;
-  
 }
 
 
@@ -557,6 +568,8 @@ void Market::interactWith(Hero **heroes, int heroesNum){
         while(inputHandler(input, options, 2) == false);
 
         if(input == 1){
+            system("clear");
+            cout << "Entering Market..\n\n";
             for(int i = 0; i < heroesNum; i++)
             cout << "[" << i << "] : " << heroes[i]->getName() << endl;
 
@@ -571,6 +584,7 @@ void Market::interactWith(Hero **heroes, int heroesNum){
         while(1){
             system("clear");
             printLogo();
+            cout << "Selected hero: "<< heroes[heroIndex]->getName() << endl << endl;
             cout << "Welcome to my store!!" << endl
             << "What are you looking for?" << endl;
             cout << "1. Buy " << endl
@@ -602,6 +616,7 @@ void Market::interactWith(Hero **heroes, int heroesNum){
                     if(goBack == true)break;
                     system("clear");
                     printLogo();
+                    cout << "Selected hero: "<< heroes[heroIndex]->getName() << endl << endl;
                     cout << "What do you want to buy?" << endl;
                     /* Product categories */
                     cout << "0. Weapon" << endl
@@ -666,7 +681,7 @@ void Market::interactWith(Hero **heroes, int heroesNum){
                     }
                     system("clear");
                     printLogo();
-
+                    cout << "Selected hero: "<< heroes[heroIndex]->getName() << endl << endl;
                     hero->checkInventory();
                     cout << 
                     "Select id of item to sell or any other number to go back\n\n"
@@ -751,7 +766,8 @@ int Market::selectProduct(int type){
         
         showItems(type); 
 
-        cout << "Type weapon id or any other number to go back\n\n";
+        cout << "Type " << this->productType[type] 
+             << " id or any other number to go back\n\n";
         cout << this->productType[type] << " :"; 
 
         int productSlots[productCounter[type]];
@@ -852,6 +868,59 @@ void Common::interactWith(Hero **heroes, int heroesNum){
 }
 
 
+vector<string> Combat::monsterNames[3];
+
+int Combat::monsterKilled, Combat::goldGained,
+Combat::itemsGained,Combat::xpGained,Combat::heroesRevives;
+
+bool Combat::isStaticInit = false;
+
+void Combat::initStatics(){
+    
+    if(isStaticInit == true)return;
+
+    ifstream myFile("./files/dragon_names");
+
+    string name;
+
+    if (myFile.is_open())
+        while (myFile >> name){
+            monsterNames[dragon].push_back(name);
+        } 
+    else{
+        cout << "Unable to read dragon_names file!" << endl;
+        exit(1);
+    } 
+    myFile.close();
+
+    myFile.open("./files/exoskeleton_names");
+    if (myFile.is_open())
+        while (myFile >> name){
+            monsterNames[exoskeleton].push_back(name);
+        } 
+    else{
+        cout << "Unable to read exoskeleton_names file!" << endl;
+        exit(1);
+    } 
+    myFile.close();
+
+    myFile.open("./files/spirit_names");
+    if (myFile.is_open())
+        while (myFile >> name){
+            monsterNames[spirit].push_back(name);
+        } 
+    else{
+        cout << "Unable to read spirit_names file!" << endl;
+        exit(1);
+    } 
+    myFile.close();
+
+    isStaticInit = true;
+
+    return;
+}
+
+
 Combat::Combat(Hero **heroes,int heroesNum){
  
     system("clear");
@@ -859,31 +928,38 @@ Combat::Combat(Hero **heroes,int heroesNum){
 
     addHeroes(heroes, heroesNum);
 
+    if(isStaticInit == false){
+        initStatics();
+    }
+
     this->round = 1;
 
     /*Create same number of monsters*/
     this->monstersNum = heroesNum;
     this->monsters = new Monster*[heroesNum];
 
-    int additionalLvl;
+    int additionalLvl, j;
 
     for(int i = 0; i < this->monstersNum; i++){
       //*Temporary just one type of monster
         additionalLvl = heroes[i]->getLevel() - 1;
         switch(rand()%3){
-            case 0:
+            case dragon:
+                j = rand() % monsterNames[dragon].size();
                 this->monsters[i] = 
-                new Dragon("Dragon" + to_string(i), additionalLvl);
+                new Dragon(monsterNames[dragon][j] , additionalLvl);
                 break;
 
-            case 1:
+            case exoskeleton:
+                j = rand() % monsterNames[exoskeleton].size();
                 this->monsters[i] = 
-                new Exoskeleton("Exoskeleton" + to_string(i), additionalLvl);
+                new Exoskeleton(monsterNames[exoskeleton][j], additionalLvl);
                 break;     
 
-            case 2:
+            case spirit:
+                j = rand() % monsterNames[spirit].size();
                 this->monsters[i] = 
-                new Spirit("Spirit" + to_string(i), additionalLvl);
+                new Spirit(monsterNames[spirit][j], additionalLvl);
                 break; 
 
         }
@@ -919,6 +995,9 @@ void Combat::start(void){
         endOfRound();
 
     }
+
+    for(int i = 0; i < monstersNum; i++)
+        if(monsters[i]->getHp() == 0)monsterKilled++;
 
     int results = result();
     bool receivePenalty;
@@ -1366,45 +1445,70 @@ void Combat::receiveRewards(void){
 
 int Combat::gainMoney(int heroLvl)
 {
-  int result = 15;
-  
-  result += (result * (0.20 * heroLvl));
-  result += rand()%4;
-  result *= this->monstersNum;
-
-  return result;
+    int result = goldRate;
+    
+    result += (result * (0.20 * heroLvl));
+    result += rand()%4;
+    result = result * (double)(monstersNum/heroesNum);
+        
+    goldGained += result;
+    
+    return result;
 }
 
 
 Item* Combat::gainItem(){
 
-  Item *item = nullptr;
+    Item *item = nullptr;
 
-  if(rand() % 50 == 1){
-    item = new Weapon("Power Sword", 220, 400, 1, Weapon::oneHanded);
-  }
+    if(rand() % 50 == 1){
+        item = new Weapon("Power Sword", 220, 300, 1, Weapon::oneHanded);
+        itemsGained++;
+    }
 
-  return item;
+
+        
+    return item;
 
 }
 
 
 int Combat::gainExp(int heroLvl)
 {
-  int result = 120;
-  
-  result -= (result * (0.02 * heroLvl));
-  result += rand()%4;
-  result *= this->monstersNum;
+    int result = xpRate;
+    
+    result -= (result * (0.02 * heroLvl));
+    result += rand()%4;
+    result = result * (double)(monstersNum/heroesNum);
 
-  return result;
+    this->xpGained += result;
+
+    return result;
 }
 
 
 void Combat::reviveHeroes(bool receivePenalty){
 
   for(int i = 0; i < this->heroesNum; i++){
-    if(heroes[i]->getHp() == 0)heroes[i]->revive(receivePenalty);
+    if(heroes[i]->getHp() == 0){
+        heroes[i]->revive(receivePenalty);
+        heroesRevives++;
+    }
   }
 
+}
+
+
+void Combat::statistics(void){
+    cout
+    << "         /~\n"
+    << "*(=####{<>==================-\n"
+    << "         \\_ \n"
+    << "\n* Combat statistics *\n"
+    << "\nMonsters killed: " << monsterKilled
+    << "\nHeroes revived: " << heroesRevives
+    << "\nXp gained: " << xpGained
+    << "\nGold picked up: " << goldGained
+    << "\nItems picked up: " << itemsGained
+    << endl;
 }

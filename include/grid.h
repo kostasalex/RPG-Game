@@ -224,10 +224,23 @@ class Common : public Block{
 class Combat : public Common{
 
     private:
-        int monstersNum;
+        int monstersNum, round;
         Monster **monsters;
 
-        int round;
+        const int xpRate = 40;
+
+        const int goldRate =  20;
+
+        static bool isStaticInit;
+
+        /*Statistics */
+        static int monsterKilled, goldGained, itemsGained, xpGained, heroesRevives;
+
+    
+        enum monsterTypes{dragon, exoskeleton, spirit};
+        static std::vector <std::string> monsterNames[3];
+        
+        void initStatics();
 
         /* Combat actions */
         void heroesTurn(void);
@@ -256,7 +269,6 @@ class Combat : public Common{
 
 
     public:
-
         Combat(Hero **heroes, int heroesNum);
         ~Combat();
 
@@ -268,4 +280,5 @@ class Combat : public Common{
         /* Combat ends when all heroes or all monster die */
         void start(void);
 
+        static void statistics(void);
 };

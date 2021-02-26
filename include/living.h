@@ -13,7 +13,7 @@
 class Living{
 
     private: 
-        static const int startingHp = 1000;
+        static const int startingHp = 500;
 
         static const int startingLevel = 1;
 
@@ -70,10 +70,11 @@ class Living{
 
 /* Heroes and their classes */
 class Hero : public Living{
+    static const int additionalHp = 100;
 
-    static const int startingExperience = 90;
+    static const int startingExperience = 0;
     
-    static const int startingMoney = 1000;
+    static const int startingMoney = 100;
 
     static const int maxLevel = 10;
 
@@ -311,6 +312,7 @@ class Monster : public Living{
         static const int startingDmg = 50;
         static const int damageRange = 50;
         static const int statsPerLevel = 2;
+        static const int hpPerLevel = 50;
         static const int damagePerLevel = 10;
 
         struct dmg{ //Damage range 
@@ -420,7 +422,7 @@ class Monster : public Living{
 class Dragon : public Monster{
 
     public:
-        static const int additionalDmg = 30;
+        static const int additionalDmg = 20;
 
         Dragon(std::string name, int additionalLevel);
         ~Dragon();
@@ -431,7 +433,7 @@ class Dragon : public Monster{
 class Exoskeleton : public Monster{
 
     public:
-        static const int additionalDef = 10;
+        static const int additionalDef = 6;
 
         Exoskeleton(std::string name, int additionalLevel);
         ~Exoskeleton();
@@ -442,7 +444,7 @@ class Exoskeleton : public Monster{
 class Spirit : public Monster{
 
     public:
-        static const int additionalDodge = 10;
+        static const int additionalDodge = 6;
 
         Spirit(std::string name, int additionalLevel);
         ~Spirit();
