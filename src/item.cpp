@@ -101,8 +101,7 @@ Inventory::Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money)
     equipWeapon(weaponToequip);
     equipArmor(armorToEquip);
     this->money = money;
-    cout << "A new Inventory constructed" << endl;
-    print();
+
 }
 
 
@@ -216,7 +215,7 @@ void Inventory::print(void) const{
     int i = 0;
     
     for (auto item = items.begin(); item != items.end(); item++, i++) {
-        cout << "inventory slot[" << i << "]: "
+        cout << "inventory slot[" << i+1 << "]: "
              << (*item)->getName() << endl; 
     }
 

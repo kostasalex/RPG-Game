@@ -142,14 +142,12 @@ int Hero::selectSpell(void) const{
         spellId = -1;
     }
     else{
-        cout << "Select a spell" << endl;
+        cout << "Select a spell" << endl << endl;
         checkSpells();
 
-        int selectSpell[spellsNum];
-        for(int i = 0; i < spellsNum; i++)selectSpell[i] = i;
         cout << "Spell: ";
 
-        while(inputHandler(spellId, selectSpell, spellsNum) == false){
+        while(inputHandler(spellId, &options[1], spellsNum) == false){
             cout << endl;
             cout << "1. Select another spell " << endl;
             cout << "0. Go back " << endl;
@@ -160,7 +158,7 @@ int Hero::selectSpell(void) const{
             cout << "Spell: " << endl;
         }
     }
-    return spellId;
+    return spellId-1;
 }
 
 
@@ -168,7 +166,7 @@ void Hero::checkSpells(void) const{
     if(spells.size() > 0){
         cout << "** Learned Spells ** " << endl;
         for(int i = 0; i < (int)spells.size(); i++){
-            cout << i << ": " << spells[i]->getName();
+            cout << "_"<< i+1 << "_ " << spells[i]->getName();
             cout << endl;
         }
     }
@@ -443,10 +441,12 @@ bool Hero::checkInventory(bool equip, bool drinkPotion){
         cout << "Inventory slot: ";
         size = inventory->getSize();
         int inventorySlots[size];
-        for(int i = 0; i < size; i++)inventorySlots[i] = i;
+        for(int i = 1; i <= size; i++)inventorySlots[i] = i;
         
         int inventorySlot;
         while(inputHandler(inventorySlot, inventorySlots, size)==false);
+
+        inventorySlot -= 1;
 
         Item *item = inventory->getItem(inventorySlot);
         Potion *potion = dynamic_cast<Potion*>(item);
