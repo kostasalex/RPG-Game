@@ -1,12 +1,13 @@
-#include <algorithm> //upper_bound
-#include <time.h>    
+#include <cstdlib>   
+#include <cstring>
+#include <iostream>
+#include <utility> 
+#include <vector>
 #include "living.h"
-#include "spell.h"
 #include "inputHandler.h"
 #include "buff.h"
 
 using namespace std;
-
 
 const string Hero::statsTypeMsg[3] = 
 {"strength", "dexterity", "agility"};
@@ -59,52 +60,16 @@ Hero::~Hero(){
 }
 
 
+int Hero::attack(Living *living) const{
 
-bool Hero::learnSpell(Spell *spell){
+    int damage = getDamage();
 
-    if(this->getLevel() >= spell->getLevel()){
-        this->spells.push_back(spell);
-        cout << this->getName() << " successfully learned spell "
-        << spell->getName() << endl;
-        return true;
-    }
-    return false;
-}
+    cout << this->getName() << " attacks " <<
+        living->getName() << ".."<< endl;
+    
+    living->receiveDamage(damage);
 
-
-bool Hero::castSpell(int spellId, Living *living) {
-
-
-    if(spellId < (int)this->spells.size()){
-        Spell* spell = spells[spellId];
-
-        if(spell->getMp() > this->mp){
-            cout << "Not enough mp!" << endl;
-            return false;
-        }
-        else{
-            cout << this->getName() << " casting "
-                 << spell->getName() << " to " 
-                 << living->getName() << endl;
-
-            int damage;
-            Buff *deBuff = spell->cast(this->current.dex, damage);
-
-            this->subMp(spell->getMp());
-
-            //If damage received and it's still alive cast debuff
-            if(living->receiveDamage(damage) != 0 && living->getHp()!= 0 ){
-                Monster *monster = (Monster*)living;
-                monster->receiveDeBuff(deBuff);
-            }
-            else delete deBuff;
-        }
-    }
-    else {
-        cout << "Spell not found!" << endl;
-        return false;
-    }
-    return true;
+    return damage;
 }
 
 
@@ -119,29 +84,6 @@ int Hero::getDamage(void) const{
     return result;
 }
 
-
-int Hero::attack(Living *living) const{
-
-    int damage = getDamage();
-
-    cout << this->getName() << " attacks " <<
-        living->getName() << ".."<< endl;
-    
-    living->receiveDamage(damage);
-
-    return damage;
-}
-
-
-int Hero::getDefence(void) const{
-    int result = 0;
-    Armor *armor = inventory->getArmor();
-
-    if(armor != nullptr)
-        result = armor->getDefence();
-    
-    return result;
-}
 
 
 int Hero::receiveDamage(int damage){
@@ -166,6 +108,109 @@ int Hero::receiveDamage(int damage){
 
     return damageDealt;
 }
+
+
+int Hero::getDefence(void) const{
+    int result = 0;
+    Armor *armor = inventory->getArmor();
+
+    if(armor != nullptr)
+        result = armor->getDefence();
+    
+    return result;
+}
+
+
+void Hero::goUnconscious(void){
+    cout << "Fell into a state  of unconsciousness!!" << endl;
+    int counter = buffCounter;
+    for(int i = 0; i < counter; i++){
+            removeBuff(i);
+    }
+}
+
+
+
+int Hero::selectSpell(void) const{
+    
+    int spellsNum = spells.size();
+    int spellId;
+    int select;
+
+    if(spellsNum == 0){
+        cout << "There aren't any spells learned yet!" << endl;
+        spellId = -1;
+    }
+    else{
+        cout << "Select a spell" << endl;
+        checkSpells();
+
+        int selectSpell[spellsNum];
+        for(int i = 0; i < spellsNum; i++)selectSpell[i] = i;
+        cout << "Spell: ";
+
+        while(inputHandler(spellId, selectSpell, spellsNum) == false){
+            cout << endl;
+            cout << "1. Select another spell " << endl;
+            cout << "0. Go back " << endl;
+            cout <<" >"<< endl;
+
+            while(inputHandler(select, options, 2) == false);
+            if(select == 0)return -1;
+            cout << "Spell: " << endl;
+        }
+    }
+    return spellId;
+}
+
+
+void Hero::checkSpells(void) const{
+    if(spells.size() > 0){
+        cout << "** Learned Spells ** " << endl;
+        for(int i = 0; i < (int)spells.size(); i++){
+            cout << i << ": " << spells[i]->getName();
+            cout << endl;
+        }
+    }
+    else cout << "No spell learned yet " << endl;
+}
+
+
+
+bool Hero::castSpell(int spellId, Living *living) {
+
+    if(spellId < (int)this->spells.size() && spellId >= 0){
+        Spell* spell = spells[spellId];
+
+        if(spell->getMp() > this->mp){
+            cout << "Not enough mp!" << endl;
+            return false;
+        }
+        else{
+            cout << this->getName() << " casting "
+                 << spell->getName() << " to " 
+                 << living->getName() << "..\n";
+
+            int damage;
+            Buff *deBuff = spell->cast(this->current.dex, damage);
+
+            this->subMp(spell->getMp());
+
+            //If damage received and it's still alive cast debuff
+            if(living->receiveDamage(damage) != 0 && living->getHp()!= 0 ){
+                Monster *monster = (Monster*)living;
+                monster->receiveDeBuff(deBuff);
+            }
+            else delete deBuff;
+        }
+    }
+    else {
+        cout << "Spell not found!" << endl;
+        return false;
+    }
+    return true;
+}
+
 
 
 void Hero::receiveExperience(int exp){
@@ -216,17 +261,6 @@ void Hero::revive(bool getPenalty){
 }
 
 
-
-void Hero::goUnconscious(void){
-    cout << "Fell into a state  of unconsciousness!!" << endl;
-    int counter = buffCounter;
-    for(int i = 0; i < counter; i++){
-            removeBuff(i);
-    }
-}
-
-
-
 void Hero::regeneration(void){
 
     if(getHp() != 0){
@@ -270,17 +304,6 @@ void Hero::levelUp(void){
 
 }
 
-
-void Hero::checkSpells(void) const{
-    if(spells.size() > 0){
-        cout << "** Learned Spells ** " << endl;
-        for(int i = 0; i < (int)spells.size(); i++){
-            cout << i << ": " << spells[i]->getName();
-            cout << endl;
-        }
-    }
-    else cout << "No spell learned yet " << endl;
-}
 
 
 void Hero::pickUp(Item *item){
@@ -326,7 +349,6 @@ Item* Hero::sell(int inventorySlot){
 }
 
 
-
 void Hero::buy(Item *item){
 
     if(item != nullptr){
@@ -369,6 +391,18 @@ void Hero::buy(Spell *spell){
 }
 
 
+bool Hero::learnSpell(Spell *spell){
+
+    if(this->getLevel() >= spell->getLevel()){
+        this->spells.push_back(spell);
+        cout << this->getName() << " successfully learned spell "
+        << spell->getName() << endl;
+        return true;
+    }
+    return false;
+}
+
+
 bool Hero::findSpell(Spell *spell){
     for(int i = 0; i < (int)spells.size(); i++){
         if(spell == spells[i])return true;
@@ -384,61 +418,67 @@ bool Hero::checkInventory(bool equip, bool drinkPotion){
 
     if(inventory->getSize() != 0 ){
 
+        cout << "\n1. Check Item" << endl;
+        size++;
+
         if(equip == true){
-            cout << "[1] Equip Item" << endl;
-            size = 2;
+            cout << "2. Equip Item" << endl;
+            size++;
         
         }
         if(drinkPotion == true){
-            cout << "[2] Drink a potion "<< endl;
-            size = 3;
+            cout << "3. Drink a potion "<< endl;
+            size++;
         }
-        if(drinkPotion == true || equip == true){
+
             
-            int selection;
+        int selection;
 
-            cout << "[0] Go back" << endl
-                 <<">";
-            while(inputHandler(selection, options, size) == false);
-            
-            if(selection == 0)return false;
+        cout << "\n0. Go back\n\n"
+                <<">";
+        while(inputHandler(selection, options, size) == false);
+        
+        if(selection == 0)return false;
 
-            cout << "Inventory slot: ";
-            size = inventory->getSize();
-            int inventorySlots[size];
-            for(int i = 0; i < size; i++)inventorySlots[i] = i;
-            
-            int inventorySlot;
-            while(inputHandler(inventorySlot, inventorySlots, size)==false);
+        cout << "Inventory slot: ";
+        size = inventory->getSize();
+        int inventorySlots[size];
+        for(int i = 0; i < size; i++)inventorySlots[i] = i;
+        
+        int inventorySlot;
+        while(inputHandler(inventorySlot, inventorySlots, size)==false);
 
-            Item *item = inventory->getItem(inventorySlot);
-            Potion *potion = dynamic_cast<Potion*>(item);
-            
-            bool isPotion = (potion != nullptr);
-            bool isItemUsed;
+        Item *item = inventory->getItem(inventorySlot);
+        Potion *potion = dynamic_cast<Potion*>(item);
+        
+        bool isPotion = (potion != nullptr);
+        bool isItemUsed;
 
-            if(selection == 1){
-                if(isPotion == true){
-                    cout << "Can't equip " << item->getName() << " !!\n";
-                    return false;
-                }
-                isItemUsed = this->equip(item);
-            }
-            else if(selection == 2){
-                if(isPotion == false){
-                    cout << "Can't drink " << item->getName() << " !!\n";
-                    return false;
-                }
-                isItemUsed = this->usePotion(potion);
-            }
-
-            if(isItemUsed == true){
-                inventory->popItem(inventorySlot);
-                return true;
-            }
-            else return false;
+        if(selection == 1){
+            item->print();
         }
+        else if(selection == 2){
+            if(isPotion == true){
+                cout << "Can't equip " << item->getName() << " !!\n";
+                return false;
+            }
+            isItemUsed = this->equip(item);
+        }
+        else if(selection == 3){
+            if(isPotion == false){
+                cout << "Can't drink " << item->getName() << " !!\n";
+                return false;
+            }
+            isItemUsed = this->usePotion(potion);
+        }
+
+        if(isItemUsed == true){
+            inventory->popItem(inventorySlot);
+            return true;
+        }
+        else return false;
     }
+    
 
     return false;
 
@@ -659,6 +699,9 @@ void Sorcerer::displayStats(void) const{
     << "||  Life: " << getHp() << "/" << getMaxHp() << endl
     << "||  Mana: " << getMp() << "/" << getMaxMp() << endl
     <<  "=================================" << endl
+    << "||  Damage: " <<  getDamage()<< endl
+    << "||  Defence: " <<  getDefence()<< endl
+    <<  "=================================" << endl
     << "||  Strength: " <<  getStr()<< endl
     << "||  Dexterity: " << getDex()  << endl
     << "||  Agility: "  << getAgi()  << endl 
@@ -695,6 +738,9 @@ void Paladin::displayStats(void) const{
     << "||  Life: " << getHp() << "/" << getMaxHp() << endl
     << "||  Mana: " << getMp() << "/" << getMaxMp() << endl
     <<  "=================================" << endl
+    << "||  Damage: " <<  getDamage()<< endl
+    << "||  Defence: " <<  getDefence()<< endl
+    <<  "=================================" << endl
     << "||  Strength: " <<  getStr()<< endl
     << "||  Dexterity: " << getDex()  << endl
     << "||  Agility: "  << getAgi()  << endl 
@@ -729,6 +775,21 @@ Monster::Monster(string name, int level) : Living(name){
 Monster::~Monster(){
     for(int i = 0; i < deBuffCounter; i++)
         delete deBuffs[i];
+}
+
+
+int Monster::selectTarget(Hero **heroes, int num){
+    
+    cout << getName() << " selecting a target..\n";
+    int target;
+
+    while(1){
+        target = rand()%num;
+        if(heroes[target]->getHp() != 0)break;
+    }
+    cout << "Preparing to attack " << heroes[target]->getName()
+         << "..\n";
+    return target;
 }
 
 
@@ -809,7 +870,7 @@ void Monster::regeneration(void){
            << getHp() << "-->";
 
       addHp(getMaxHp()*regenRate);
-      cout << getHp() << endl;
+      cout << getHp() << endl << endl;
     }
     else  cout << getName() << " is Unconscious!" << endl << endl;
 
@@ -854,7 +915,6 @@ void Monster::receiveDeBuff(Buff *deBuff){
 
         cout << " activated!!" << endl;
 
-        cout << " activated!!" << endl;
         int points = deBuff->getPoints();
         switch(deBuff->getStat()){
             case Spell::damage:
@@ -868,8 +928,8 @@ void Monster::receiveDeBuff(Buff *deBuff){
                 break;
         }
 
-        cout << "successfully descreased " << points
-             << " points of " << Spell::statMsg[deBuff->getStat()] << endl;
+        cout << Spell::statMsg[deBuff->getStat()] 
+        << " successfully descreased " << points << " points!\n";
 
         deBuffSlot = this->deBuffCounter;
         this->deBuffCounter++;
@@ -980,7 +1040,8 @@ cout
     << "   |====|= Exoskeleton =|====| "  << endl
     << "---------------------------------" << endl
     << "         " << getName() << endl
-    <<  "=================================" << endl
+    << "==================================" << endl
+    << "||  Level: "<< getLevel() << endl
     << "||  Life: " << getHp() << "/" << getMaxHp() << endl
     <<  "==================================" << endl
     << "||  Damage: " << getDmgLb() << " - " 

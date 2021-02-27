@@ -247,8 +247,6 @@ class Combat : public Common{
 
         void monstersTurn(void);
 
-        int getRandTarget(int monsterIndex);
-
         void endOfRound(void);
 
         enum resutl{ stillFighting, heroesWon, monstersWon};

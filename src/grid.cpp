@@ -155,11 +155,13 @@ Grid::Grid(){
 
     }
 
-    cout << heroesNum <<" Heroes created: " << endl << endl;
+    cout << "\nHeroes created: \n\n";
+    
     for(int i = 0; i < heroesNum; i++){
         heroes[i]->displayStats();
         cout << endl;
     }
+    pressEnterToContinue();
 }
 
 
@@ -670,8 +672,8 @@ void Market::interactWith(Hero **heroes, int heroesNum){
                 /* Sell a product to market the */
             case 2:
                 if(hero->getInventorySize() == 0){
-                cout << "Your inventory is empty!" << endl;
-                pressEnterToContinue();
+                    cout << "Your inventory is empty!" << endl;
+                    pressEnterToContinue();
                 continue;
                 }
                 while(1){
@@ -765,7 +767,7 @@ int Market::selectProduct(int type){
         cout << "Select " << this->productType[type] << " :\n\n"; 
         
         showItems(type); 
-
+        
         cout << "Type " << this->productType[type] 
              << " id or any other number to go back\n\n";
         cout << this->productType[type] << " :"; 
@@ -1055,9 +1057,8 @@ void Combat::heroesTurn(void){
     int selectMonster[monstersNum];
     for(int i = 0; i < monstersNum; i++)selectMonster[i] = i;
 
-    int spellsNum;
     int select;
-    int heroIndex, monsterIndex, spellIndex;
+    int heroIndex, monsterIndex;
 
 
     while(1){ //Menu 1
@@ -1141,7 +1142,7 @@ void Combat::heroesTurn(void){
             /*If hero equip an item or use a potion, loses his turn */
             if(heroes[heroIndex]->checkInventory(true, true) == true){
                 cout << heroes[heroIndex]->getName() << " lost his turn!" << endl;
-                heroTurn[heroIndex]++;
+                heroTurn[heroIndex] = notAvailable;
                 pressEnterToContinue();
                 break;
             }
@@ -1195,38 +1196,19 @@ void Combat::heroesTurn(void){
                     if(select == 0)break;
                     if(select == 1){
                         heroes[heroIndex]->attack(monsters[monsterIndex]);
-                        heroTurn[heroIndex]++;
+                        heroTurn[heroIndex] = notAvailable;
                     }
                     else if(select == 2){
-                    
-                        spellsNum = heroes[heroIndex]->getSpellNum();
-                        if(spellsNum == 0){
-                            cout << "There aren't any spells learned yet!" << endl;
+                        int spellId = heroes[heroIndex]->selectSpell();
+                        bool isSpellCasted = false; 
+                        if(spellId != -1){
+                            isSpellCasted = heroes[heroIndex]->
+                                castSpell(spellId, monsters[monsterIndex]);
                         }
-                        else{
-                            cout << "Select a spell" << endl;
-                            heroes[heroIndex]->checkSpells();
+                        if(isSpellCasted == true)
+                            heroTurn[heroIndex] = notAvailable;   
 
-                            int selectSpell[spellsNum];
-                            for(int i = 0; i < spellsNum; i++)selectSpell[i] = i;
-                            cout << "Spell: ";
-
-                            while(inputHandler(spellIndex, selectSpell, spellsNum) == false){
-                                cout << endl;
-                                cout << "1. Select another spell " << endl;
-                                cout << "0. Go back " << endl;
-                                cout <<" >"<< endl;
-
-                                while(inputHandler(select, options, 2) == false);
-                                if(select == 0)break;
-                            }
-                            if(select == 0)continue; //Go back
-                            
-                            cout << endl;
-                            if(heroes[heroIndex]->castSpell(spellIndex, monsters[monsterIndex])\
-                            == true)heroTurn[heroIndex]++;    
-                        }
-                        
+                        cout << endl; 
                     }
                     else if(select == 3){
                         monsters[monsterIndex]->displayStats();
@@ -1267,39 +1249,18 @@ void Combat::monstersTurn(void){
    
     print(-1, -1, false);
     if(stillAlive == false) return;
-    target = getRandTarget(i);
+    target = monsters[i]->selectTarget(heroes, heroesNum);
     
-    cout << this->monsters[i]->getName()
-         << " targeted " << this->heroes[target]->getName() << endl << endl;
     pressEnterToContinue(false);
     print(target, i, false);
-    /*cout << "Press Enter to Continue";
-    cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
-    cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
-    cout << endl;*/
 
     this->monsters[i]->attack(heroes[target]);
     cout << endl;
     pressEnterToContinue(false);
-    /*cout << "Press Enter to Continue";
-    cin.ignore(std::numeric_limits<streamsize>::max(),'\n');
-    cout << endl;*/
+
   }
 }
 
-
-int Combat::getRandTarget(int monsterIndex){
-  int target;
-  //*debug
-  cout << monsters[monsterIndex]->getName() 
-  <<" selecting a target.." << endl;
-
-  while(1){
-    target = rand()%this->heroesNum;
-    if(this->heroes[target]->getHp() != 0)break;
-  }
-  return target;
-}
 
 
 void Combat::endOfRound(){
