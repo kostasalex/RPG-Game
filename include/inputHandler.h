@@ -4,10 +4,8 @@
 #include <limits>
 #include <fstream>
 
-const int options[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
 template<typename T>
-
 bool inputHandler(T &input, const T options[], int size){
 
   std::cin >> input;
@@ -32,6 +30,7 @@ bool inputHandler(T &input, const T options[], int size){
   return false;
 }
 
+bool inputHandler(int &input, int min, int max);
 
 int getFileLines(std::ifstream& file);
 
