@@ -12,7 +12,9 @@ using namespace std;
 const string Hero::statsTypeMsg[3] = 
 {"strength", "dexterity", "agility"};
 
+
 /* Base class *Living* implementation*/
+
 Living::Living(string name)
 { 
     this->name = name;
@@ -24,6 +26,7 @@ Living::~Living(){}
 
 
 /* Subclass of Living -> *Hero* implementation */
+
 Hero::Hero(string name) : Living(name){
 
     /* Init strength, dexterity, agility */
@@ -139,23 +142,23 @@ int Hero::selectSpell(void) const{
 
     if(spellsNum == 0){
         cout << "There aren't any spells learned yet!" << endl;
-        spellId = -1;
+        return -1;
     }
     else{
         cout << "Select a spell" << endl << endl;
         checkSpells();
-
-        cout << "Spell: ";
+    
+        cout << "\nSpell: ";
 
         while(inputHandler(spellId, &options[1], spellsNum) == false){
             cout << endl;
             cout << "1. Select another spell " << endl;
-            cout << "0. Go back " << endl;
-            cout <<" >"<< endl;
+            cout << "0. Go back " << endl << endl;
+            cout <<" >";
 
             while(inputHandler(select, options, 2) == false);
             if(select == 0)return -1;
-            cout << "Spell: " << endl;
+            cout << "Spell: ";
         }
     }
     return spellId-1;
@@ -164,10 +167,10 @@ int Hero::selectSpell(void) const{
 
 void Hero::checkSpells(void) const{
     if(spells.size() > 0){
-        cout << "** Learned Spells ** " << endl;
+        cout << "*_Learned Spells_* " << endl << endl;
         for(int i = 0; i < (int)spells.size(); i++){
-            cout << "_"<< i+1 << "_ " << spells[i]->getName();
-            cout << endl;
+            cout << "_"<< i+1 << "_ " << endl
+                 << spells[i]->getName() << endl;
         }
     }
     else cout << "No spell learned yet " << endl;
@@ -255,7 +258,6 @@ void Hero::revive(bool getPenalty){
         subMoney(getMoney()/2);
         cout << getMoney() << endl;
     }
-
 }
 
 
@@ -362,7 +364,6 @@ void Hero::buy(Item *item){
         }
     else cout << item->getPrice()- getMoney() << " gold is missing!" << endl;
     }
-
 }
 
 
@@ -385,7 +386,6 @@ void Hero::buy(Spell *spell){
         }
     else cout << spell->getPrice()- getMoney() << " gold is missing!" << endl;
     }
-
 }
 
 
@@ -409,79 +409,81 @@ bool Hero::findSpell(Spell *spell){
 }   
 
 
-bool Hero::checkInventory(bool equip, bool drinkPotion){
+bool Hero::checkInventory(bool equip, bool usePotion){
     
     inventory->print();
-    int size = 1;
+    int selection, size = 1;
 
     if(inventory->getSize() != 0 ){
 
         cout << "\n1. Check Item" << endl;
         size++;
 
-        if(equip == true){
+        if(equip == true)
+        {
             cout << "2. Equip Item" << endl;
             size++;
-        
         }
-        if(drinkPotion == true){
+        if(usePotion == true)
+        {
             cout << "3. Drink a potion "<< endl;
             size++;
         }
-
-            
-        int selection;
-
         cout << "\n0. Go back\n\n"
                 <<">";
+
         while(inputHandler(selection, options, size) == false);
         
         if(selection == 0)return false;
-
-        cout << "Inventory slot: ";
-        size = inventory->getSize();
-        int inventorySlots[size];
-        for(int i = 1; i <= size; i++)inventorySlots[i] = i;
+        
+        cout << "\n0. Go back\n\n"
+             << "Inventory slot: ";
+             
+        size = inventory->getSize() + 1; //All items including 0 to go back
         
         int inventorySlot;
-        while(inputHandler(inventorySlot, inventorySlots, size)==false);
+        while(inputHandler(inventorySlot, options, size) == false);
 
+        if(inventorySlot == 0)return false;
         inventorySlot -= 1;
 
         Item *item = inventory->getItem(inventorySlot);
         Potion *potion = dynamic_cast<Potion*>(item);
         
         bool isPotion = (potion != nullptr);
-        bool isItemUsed;
+        bool isItemUsed = false;
 
-        if(selection == 1){
+        if(selection == 1)
+        {
             item->print();
         }
-        else if(selection == 2){
-            if(isPotion == true){
+        else if(selection == 2)
+        {
+            if(isPotion == true)
+            {
                 cout << "Can't equip " << item->getName() << " !!\n";
                 return false;
             }
             isItemUsed = this->equip(item);
         }
-        else if(selection == 3){
-            if(isPotion == false){
+        else if(selection == 3)
+        {
+            if(isPotion == false)
+            {
                 cout << "Can't drink " << item->getName() << " !!\n";
                 return false;
             }
             isItemUsed = this->usePotion(potion);
         }
 
-        if(isItemUsed == true){
+        if(isItemUsed == true)
+        {   //Remove item from inventory
             inventory->popItem(inventorySlot);
             return true;
         }
         else return false;
     }
-    
-
     return false;
-
 } 
 
 
@@ -489,7 +491,6 @@ bool Hero::checkInventory(bool equip, bool drinkPotion){
 int Hero::inventoryAdd(Item *item){
     return this->inventory->addItem(item);
 }
-
 
 
 bool Hero::equip(Item *item){
@@ -518,7 +519,7 @@ bool Hero::equip(Item *item){
 
 bool Hero::usePotion(Potion *potion){
 
-    cout << this->getName() << " is drinking " << potion->getName() << endl;
+    cout << getName() << " is drinking " << potion->getName() << endl;
 
     addBuff(potion->drink());
     
@@ -632,6 +633,7 @@ void Hero::removeBuff(int buffSlot){
     }
     buffCounter--;
 }
+
 
 /* Subclass of Hero -> *Warrior* implementation */
 
@@ -749,6 +751,7 @@ void Paladin::displayStats(void) const{
     checkSpells();
     printBuffs();
 }
+
 
 /* Subclass of Living -> *Monster* implementation */
 
@@ -982,7 +985,6 @@ void Monster::removeDeBuff(int deBuffSlot){
 }
 
 
-
 /* Subclass of Monster -> *Dragon* implementation */
 
 Dragon::Dragon(string name, int level) : Monster(name, level){
@@ -1017,6 +1019,7 @@ cout
 
     printDeBuffs();
 }
+
 
 /* Subclass of Monster -> *Exoskeleton* implementation */
 

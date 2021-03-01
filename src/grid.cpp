@@ -91,32 +91,32 @@ Grid::Grid(){
         printLogo();
 
         cout << "\nSelect a class :" << endl << endl;
-        cout << "1. Warrior    || A warrior class has additional strength and agility"
+        cout << "1. Warrior     || A warrior class has additional strength and agility"
             << endl 
             << "               || Strength : " 
-            << Warrior::startingStr + Warrior::additionalStr << endl
+            << Warrior::getStrength() << endl
             << "               || Dexterity : "
-            << Warrior::startingDex << endl
+            << Warrior::getDexterity() << endl
             << "               || Agility : "
-            << Warrior::startingAgi + Warrior::additionalAgi << endl << endl;
+            << Warrior::getAgility() << endl << endl;
         
-        cout << "2. Sorcerer   || A Sorcerer class has additional dexterity and agility"
+        cout << "2. Sorcerer    || A Sorcerer class has additional dexterity and agility"
             << endl 
             << "               || Strength : " 
-            << Sorcerer::startingStr << endl
+            << Sorcerer::getStrength() << endl
             << "               || Dexterity : "
-            << Sorcerer::startingDex + Sorcerer::additionalDex << endl
+            << Sorcerer::getDexterity() << endl
             << "               || Agility : "
-            << Sorcerer::startingAgi + Sorcerer::additionalAgi << endl << endl;
+            << Sorcerer::getAgility() << endl << endl;
         
-        cout << "3. Paladin    || A Paladin class has additional strength and dexterity"
+        cout << "3. Paladin     || A Paladin class has additional strength and dexterity"
             << endl 
             << "               || Strength : " 
-            << Paladin::startingStr + Paladin::additionalStr << endl
+            << Paladin::getStrength() << endl
             << "               || Dexterity : "
-            << Paladin::startingDex + Paladin::additionalDex << endl
+            << Paladin::getDexterity() << endl
             << "               || Agility : "
-            << Paladin::startingAgi << endl << endl;
+            << Paladin::getAgility() << endl << endl;
 
         if(heroesNum > 0){
             cout << "0. Exit hero creation" << endl << endl
@@ -490,7 +490,7 @@ Market::Market(){
 		}
 	}
 	else{
-        cout << "Unable to read armors file!" << endl;
+        cout << "Unable to read spells file!" << endl;
         exit(1);
     } 
     myFile.close();
@@ -516,7 +516,7 @@ Market::Market(){
 		}
 	}
 	else{
-        cout << "Unable to read armors file!" << endl;
+        cout << "Unable to read potions file!" << endl;
         exit(1);
     } 
     myFile.close();
@@ -766,9 +766,6 @@ void Market::showItems(int type){
 
 int Market::selectProduct(int type){
     int select = -1, input;
-    
-    int productSlots[productCounter[type]];
-    for(int i = 1; i <= productCounter[type]; i++)productSlots[i] = i;
 
     while(1){
         input = -1;
@@ -781,7 +778,7 @@ int Market::selectProduct(int type){
         cout << "0. Go back\n\n";
         cout << this->productType[type] << ":"; 
         
-        while(inputHandler(select, productSlots, productCounter[type]+1) == false){
+        while(inputHandler(select, options, productCounter[type] + 1) == false){
             cout << "\n1. Select another " << this->productType[type] << endl
                 << "0. Go back \n" 
                 <<">";

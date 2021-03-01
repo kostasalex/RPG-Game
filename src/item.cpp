@@ -54,7 +54,6 @@ int price, int requiredLevel, int handsRequired)
 {
     this->damage = damage;
     this->handsRequired = handsRequired;
-    print();
 }
 
 Weapon::~Weapon(){}
@@ -76,7 +75,6 @@ Armor::Armor(string name, int defence, int price, int requiredLevel)
 : Item(name, price, requiredLevel)
 {
     this->defence = defence;
-    print();
 }
 
 Armor::~Armor(){}
