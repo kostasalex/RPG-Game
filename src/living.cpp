@@ -24,6 +24,8 @@ Living::Living(string name)
 
 Living::~Living(){}
 
+/***********************************************************************/
+
 
 /* Subclass of Living -> *Hero* implementation */
 
@@ -147,21 +149,15 @@ int Hero::selectSpell(void) const{
     else{
         cout << "Select a spell" << endl << endl;
         checkSpells();
-    
+        cout << "\n0. Go back\n";
         cout << "\nSpell: ";
 
-        while(inputHandler(spellId, &options[1], spellsNum) == false){
-            cout << endl;
-            cout << "1. Select another spell " << endl;
-            cout << "0. Go back " << endl << endl;
-            cout <<" >";
-
-            while(inputHandler(select, options, 2) == false);
-            if(select == 0)return -1;
-            cout << "Spell: ";
-        }
+        while(inputHandler(select, 0, spellsNum) == false);
+        
+        if(select == 0)return -1;
+        else spellId = select-1;
     }
-    return spellId-1;
+    return spellId;
 }
 
 
@@ -308,7 +304,12 @@ void Hero::levelUp(void){
 
 void Hero::pickUp(Item *item){
     if(item != nullptr){
-        inventory->addItem(item);
+        if(inventoryAdd(item) == false)
+        {
+            cout << getName() << " failed to pick up"
+            << item->getName() << endl;
+            return;
+        }
         cout << getName() << " Picked up " 
         << item->getName() << "!!!" << endl;
     }
@@ -333,8 +334,26 @@ void Hero::receiveMoney(int money){
 }
 
 
-Item* Hero::sell(int inventorySlot){
 
+Item* Hero::sell(void){
+
+    int maxOption, select, inventorySlot;
+
+    if((maxOption = getInventorySize()) == 0){
+        cout << "Your inventory is empty!" << endl;
+        return nullptr;
+    }
+    cout << "Select an item to sell\n";
+    inventory->print();
+
+    cout << "\n0. Go back\n\n"
+            << "Inventory slot: ";
+
+    while(inputHandler(select, 0, maxOption) == false);
+
+    if(select == 0)return nullptr;
+    inventorySlot = select-1;
+    
     Item* item = inventory->popItem(inventorySlot);
 
     if(item != nullptr){
@@ -354,15 +373,18 @@ void Hero::buy(Item *item){
     if(item != nullptr){
         if(getMoney() >= item->getPrice()){
             if(getLevel() >= item->getLevel()){
-                subMoney(item->getPrice());
-                cout << item->getName() << " successfully purchased!!" << endl; 
-                inventoryAdd(item);
+                if(inventoryAdd(item) == true){
+                    subMoney(item->getPrice());
+                    cout << item->getName() 
+                    << " successfully purchased!!" << endl; 
+                }
             }
             else cout << item->getName() << " requires "
                       << item->getLevel()-getLevel() 
                       << " more levels" << endl;
         }
-    else cout << item->getPrice()- getMoney() << " gold is missing!" << endl;
+        else cout << item->getPrice()- getMoney() 
+            << " gold is missing!" << endl;
     }
 }
 
@@ -412,37 +434,37 @@ bool Hero::findSpell(Spell *spell){
 bool Hero::checkInventory(bool equip, bool usePotion){
     
     inventory->print();
-    int selection, size = 1;
+    int selection, maxOption = 1;
 
     if(inventory->getSize() != 0 ){
 
         cout << "\n1. Check Item" << endl;
-        size++;
+        maxOption++;
 
         if(equip == true)
         {
             cout << "2. Equip Item" << endl;
-            size++;
+            maxOption++;
         }
         if(usePotion == true)
         {
             cout << "3. Drink a potion "<< endl;
-            size++;
+            maxOption++;
         }
         cout << "\n0. Go back\n\n"
                 <<">";
 
-        while(inputHandler(selection, options, size) == false);
+        while(inputHandler(selection, 0, maxOption) == false);
         
         if(selection == 0)return false;
         
         cout << "\n0. Go back\n\n"
              << "Inventory slot: ";
              
-        size = inventory->getSize() + 1; //All items including 0 to go back
+        maxOption = inventory->getSize(); //All items including 0 to go back
         
         int inventorySlot;
-        while(inputHandler(inventorySlot, options, size) == false);
+        while(inputHandler(inventorySlot, 0, maxOption) == false);
 
         if(inventorySlot == 0)return false;
         inventorySlot -= 1;
@@ -488,7 +510,7 @@ bool Hero::checkInventory(bool equip, bool usePotion){
 
 
 
-int Hero::inventoryAdd(Item *item){
+bool Hero::inventoryAdd(Item *item){
     return this->inventory->addItem(item);
 }
 
@@ -634,6 +656,8 @@ void Hero::removeBuff(int buffSlot){
     buffCounter--;
 }
 
+/***********************************************************************/
+
 
 /* Subclass of Hero -> *Warrior* implementation */
 
@@ -674,6 +698,8 @@ cout
     printBuffs();
 }
 
+/***********************************************************************/
+
 
 /* Subclass of Hero -> *Sorcerer* implementation */
 
@@ -713,6 +739,8 @@ void Sorcerer::displayStats(void) const{
     printBuffs();
 }
 
+/***********************************************************************/
+
 
 /* Subclass of Hero -> *Paladin* implementation */
 
@@ -751,6 +779,8 @@ void Paladin::displayStats(void) const{
     checkSpells();
     printBuffs();
 }
+
+/***********************************************************************/
 
 
 /* Subclass of Living -> *Monster* implementation */
@@ -984,6 +1014,8 @@ void Monster::removeDeBuff(int deBuffSlot){
     
 }
 
+/***********************************************************************/
+
 
 /* Subclass of Monster -> *Dragon* implementation */
 
@@ -1019,6 +1051,8 @@ cout
 
     printDeBuffs();
 }
+
+/***********************************************************************/
 
 
 /* Subclass of Monster -> *Exoskeleton* implementation */
@@ -1093,3 +1127,5 @@ void Spirit::displayStats(void) const{
     
     printDeBuffs();
 }
+
+/***********************************************************************/

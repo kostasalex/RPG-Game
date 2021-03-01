@@ -13,6 +13,8 @@ Item::Item(string name, int price, int requiredLevel)
 
 Item::~Item (){}
 
+/***********************************************************************/
+
 
 /* Subclass *Potion* implementation */
 const string Potion::statTypeMsg[3] = {"strength", "dexterity", "agility"};
@@ -45,6 +47,8 @@ void Potion::print() const{
          << "Price: " << getPrice() << endl;
 }
 
+/***********************************************************************/
+
 
 /* Subclass *Weapon* implementation */
 
@@ -68,6 +72,8 @@ void Weapon::print()const {
 
 }
 
+/***********************************************************************/
+
 
 /* Subclass *Armor* implementation */
 
@@ -89,7 +95,10 @@ void Armor::print()const {
 
 }
 
+/***********************************************************************/
 
+
+/* Inventory implementation */
 
 Inventory::Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money)
 {   
@@ -99,7 +108,6 @@ Inventory::Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money)
     equipWeapon(weaponToequip);
     equipArmor(armorToEquip);
     this->money = money;
-
 }
 
 
@@ -178,9 +186,16 @@ Item* Inventory::getItem(int inventorySlot){
 }
 
 
-int Inventory::addItem(Item *item){
+bool Inventory::addItem(Item *item){
 
-    if(item == NULL)return false;
+    if(item == nullptr){
+        cout << "Inventory add failed!Item doesn't exists!\n";
+        return false;
+    }
+    if(isFull()){
+        cout << "Inventory is full!\n";
+        return false;
+    }
 
     items.push_back(item);
 
@@ -224,3 +239,5 @@ void Inventory::print(void) const{
 
     cout << "-----------------------------------" << endl;
 }
+
+/***********************************************************************/
