@@ -50,8 +50,12 @@ Hero::Hero(string name) : Living(name){
     starterArmor = 
     new Armor("Wooden Armor", defence, price, requiredLvl);
     
+    int inventorySize = 10;
     this->inventory = 
-    new Inventory(starterWeapon, starterArmor, startingMoney);
+    new Inventory(starterWeapon, starterArmor, startingMoney, inventorySize);
+
+    int spellBookSize = 10;
+    spellBook = new SpellBook(spellBookSize);
 }
 
 
@@ -62,6 +66,7 @@ Hero::~Hero(){
     delete starterWeapon;
     delete starterArmor;
     delete inventory;
+    delete spellBook;
 }
 
 
@@ -138,7 +143,7 @@ void Hero::goUnconscious(void){
 
 int Hero::selectSpell(void) const{
     
-    int spellsNum = spells.size();
+    int spellsNum = spellBook->getSize();
     int spellId;
     int select;
 
@@ -162,49 +167,44 @@ int Hero::selectSpell(void) const{
 
 
 void Hero::checkSpells(void) const{
-    if(spells.size() > 0){
-        cout << "*_Learned Spells_* " << endl << endl;
-        for(int i = 0; i < (int)spells.size(); i++){
-            cout << "_"<< i+1 << "_ " << endl
-                 << spells[i]->getName() << endl;
-        }
-    }
-    else cout << "No spell learned yet " << endl;
+    spellBook->checkSpells();
 }
 
 
 
 bool Hero::castSpell(int spellId, Living *living) {
 
-    if(spellId < (int)this->spells.size() && spellId >= 0){
-        Spell* spell = spells[spellId];
+    Spell* spell = spellBook->getSpell(spellId);
 
-        if(spell->getMp() > this->mp){
-            cout << "Not enough mp!" << endl;
-            return false;
-        }
-        else{
-            cout << this->getName() << " casting "
-                 << spell->getName() << " to " 
-                 << living->getName() << "..\n";
-
-            int damage;
-            Buff *deBuff = spell->cast(this->current.dex, damage);
-
-            this->subMp(spell->getMp());
-
-            //If damage received and it's still alive cast debuff
-            if(living->receiveDamage(damage) != 0 && living->getHp()!= 0 ){
-                Monster *monster = (Monster*)living;
-                monster->receiveDeBuff(deBuff);
-            }
-            else delete deBuff;
-        }
-    }
-    else {
+    if(spell == nullptr){
         cout << "Spell not found!" << endl;
         return false;
     }
+
+
+    if(spell->getMp() > this->mp){
+        cout << "Not enough mp!" << endl;
+        return false;
+    }
+    else{
+        cout << this->getName() << " casting "
+                << spell->getName() << " to " 
+                << living->getName() << "..\n";
+
+        int damage;
+        Buff *deBuff = spell->cast(this->current.dex, damage);
+
+        this->subMp(spell->getMp());
+
+        //If damage received and it's still alive cast debuff
+        if(living->receiveDamage(damage) != 0 && living->getHp()!= 0 ){
+            Monster *monster = (Monster*)living;
+            monster->receiveDeBuff(deBuff);
+        }
+        else delete deBuff;
+    }
+    
+
     return true;
 }
 
@@ -301,21 +301,6 @@ void Hero::levelUp(void){
 }
 
 
-
-void Hero::pickUp(Item *item){
-    if(item != nullptr){
-        if(inventoryAdd(item) == false)
-        {
-            cout << getName() << " failed to pick up"
-            << item->getName() << endl;
-            return;
-        }
-        cout << getName() << " Picked up " 
-        << item->getName() << "!!!" << endl;
-    }
-}
-
-
 void Hero::pickUp(int money){
     if(money > 0){
         addMoney(money);
@@ -334,14 +319,14 @@ void Hero::receiveMoney(int money){
 }
 
 
+void Hero::sell(Item *&item){
 
-Item* Hero::sell(void){
-
-    int maxOption, select, inventorySlot;
+    int maxOption, select, slot;
+    item = nullptr;
 
     if((maxOption = getInventorySize()) == 0){
         cout << "Your inventory is empty!" << endl;
-        return nullptr;
+        return;
     }
     cout << "Select an item to sell\n";
     inventory->print();
@@ -351,20 +336,52 @@ Item* Hero::sell(void){
 
     while(inputHandler(select, 0, maxOption) == false);
 
-    if(select == 0)return nullptr;
-    inventorySlot = select-1;
+    if(select == 0)return;
+    slot = select-1;
     
-    Item* item = inventory->popItem(inventorySlot);
+    item = inventory->popItem(slot);
 
     if(item != nullptr){
         cout << "Selling " << item->getName() << " .." << endl;
     }
     else{
-        cout << "Couldn't sell requested item, there is no item in slot "
-             << inventorySlot << "!!" << endl;
+        cout 
+        << "Couldn't sell requested item, there is no item in slot "
+        << slot << "!!" << endl;
     }
+}
 
-    return item;
+
+void Hero::sell(Spell *&spell){
+
+    int maxOption, select, slot;
+    spell = nullptr;
+
+    if((maxOption = spellBook->getSize()) == 0){
+        cout << "Your spellbook is empty!" << endl;
+        return;
+    }
+    cout << "Select a spell to sell\n";
+    checkSpells();
+
+    cout << "\n0. Go back\n\n"
+                    << "Spell: ";
+
+    while(inputHandler(select, 0, maxOption) == false);
+
+    if(select == 0)return;
+    slot = select-1;
+    
+    spell = spellBook->popSpell(slot);
+
+    if(spell != nullptr){
+        cout << "Selling " << spell->getName() << " .." << endl;
+    }
+    else{
+        cout 
+        << "Couldn't sell requested Spell, there is no spell in slot "
+        << slot << "!!" << endl;
+    }
 }
 
 
@@ -394,14 +411,11 @@ void Hero::buy(Spell *spell){
     if(spell != nullptr){
         if(getMoney() >= spell->getPrice()){
             if(getLevel() >= spell->getLevel()){
-                if(findSpell(spell) == false){
+                if(learnSpell(spell) == true){
                     subMoney(spell->getPrice());
                     cout << spell->getName()
                          << " successfully purchased!!" << endl; 
-                    learnSpell(spell);
                 }
-                else  cout << spell->getName()
-                           << " allready learned!!" << endl; 
             }
             else cout << spell->getName() << " requires level "
                       << spell->getLevel() << endl;
@@ -412,23 +426,21 @@ void Hero::buy(Spell *spell){
 
 
 bool Hero::learnSpell(Spell *spell){
-
-    if(this->getLevel() >= spell->getLevel()){
-        this->spells.push_back(spell);
-        cout << this->getName() << " successfully learned spell "
-        << spell->getName() << endl;
-        return true;
+    
+    bool result = spellBook->addSpell(spell);
+   
+    cout << this->getName();
+    
+    if(result == true){
+        cout << " is about to learn ";
     }
-    return false;
+    else cout << " couldn't learn ";
+    
+    cout << spell->getName() << endl; 
+
+    return result;
 }
 
-
-bool Hero::findSpell(Spell *spell){
-    for(int i = 0; i < (int)spells.size(); i++){
-        if(spell == spells[i])return true;
-    }
-    return false;
-}   
 
 
 bool Hero::checkInventory(bool equip, bool usePotion){
@@ -585,7 +597,8 @@ int Hero::findBuff(Buff *buff){
 void Hero::addBuff(Buff *buff){
 
     if(buff == nullptr){
-        cout << "Couldn't add buff\n";
+        //There is no buff to add
+        return;
     }
 
     cout << "Buff " << buff->getName();
@@ -607,7 +620,7 @@ void Hero::addBuff(Buff *buff){
                 this->addStats(0, points, 0); 
                 break;
             case agility:
-                this->addStats(0, 0, points); 
+                this->addStats(0, 0, points);
                 break;
         }
         cout << "successfully inscreased " << points

@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <vector>
 #include "buff.h"
 
 class Spell{
@@ -105,6 +106,31 @@ class LightingSpell : public Spell{
 
         void print(void) override;
 
+
+};
+
+
+
+class SpellBook{
+    
+    private:
+        int maxSpells;
+        std::vector <Spell*> spells;
+
+    public:
+        SpellBook(int size): maxSpells(size){}
+        ~SpellBook(){}
+
+        void checkSpells(void);
+        
+        bool findSpell(Spell *spell);
+        
+        bool addSpell(Spell* spell);
+    
+        Spell *popSpell(int id);
+        Spell *getSpell(int id);
+
+        inline int getSize(void){return spells.size();}    
 
 };
 #endif

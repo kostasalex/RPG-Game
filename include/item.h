@@ -49,13 +49,16 @@ class Potion : public Item{
 
         static const std::string buffNames[3];
         static const std::string statTypeMsg[3];
-    public:
+
+    public:            
         enum statsType{strength, dexterity, agility};
         static const int potionTypes = 3;
 
         /* Constructor - Destructor */
         Potion(std::string name, int stat,\
         int price, int points, int requiredLevel);
+        Potion(std::string name, int stat,\
+        int requiredLevel);
         ~Potion();
 
         struct Buff* drink(void);
@@ -68,8 +71,6 @@ class Potion : public Item{
         inline int getStat(void) { return this->stat; }
 
         inline int getPoints(void){return this->points;}
-
-
 };
 
 
@@ -97,8 +98,6 @@ class Weapon : public Item{
         inline int getDamage(void) const { return damage; }
 
         inline int getHandsRequired(void) const { return handsRequired; }
-
-
 };
 
 
@@ -114,12 +113,8 @@ class Armor : public Item{
         Armor(std::string name, int defence, int price, int requiredLevel);
         ~Armor();
 
-
-        /* Override functions */
         void print() const override;
 
-
-        /* Inline functions */
         inline int getDefence(void) const { return defence; }
 
 
@@ -137,6 +132,7 @@ class Inventory{
 
         Item *handSlot[2];
 
+        int maxItems;
         std::vector<Item*> items;
 
         void disarmWeapon(void);
@@ -145,30 +141,34 @@ class Inventory{
 
     public:
 
-        Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money);
+        Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money, int size);
         ~Inventory();
 
         void print(void) const;
 
-        /* Check if object is the valid type before use these functions */
+        //Return false for nullptr argument
         bool equipWeapon(Weapon *weapon);
         bool equipArmor(Armor *armor);
         
+        //Removes item from inventory
         Item* popItem(int inventorySlot);
+        //Returns the item without removing it
         Item *getItem(int inventorySlot);
-        int addItem(Item *item);
+
+        bool addItem(Item *item);
 
         inline int getSize(void) const {return this->items.size();}
+        inline bool isFull(void) const 
+        {return (int)this->items.size() == maxItems;}
 
         inline Weapon *getWeapon(void){return this->weapon;}
         inline Armor *getArmor(void){return this->armor;}
+
         inline void addMoney(int money){ this->money+= money; }
         inline void subMoney(int money)
         {this->money = ((this->money - money) < 0)? 0 : (this->money - money);}
         
         inline int getMoney(void){ return this->money; }
-
-        
 };
 
 #endif

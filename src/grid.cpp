@@ -9,6 +9,7 @@ using namespace std;
 
 
 /* Grid implementation */
+
 const char Grid::direction[5] = {'w', 's', 'a', 'd', 'b'};
 
 const char Grid::defaultMap[defaultHeight][defaultWidth] = 
@@ -274,9 +275,7 @@ void Grid::play(void){
                 break;
             //End of case 2 select hero.
         }   
-
     }
-
 }
 
 
@@ -373,7 +372,6 @@ void Grid::display(void) const{
         }
         cout << endl <<  "-----------------" << endl;
     }                     
-    //cout << "================" << endl;
     cout << endl;
 }
 
@@ -675,19 +673,33 @@ void Market::interactWith(Hero **heroes, int heroesNum){
 
                 /* Sell a product to market the */
             case 2:
+                while(1){
+                    system("clear");
+                    printLogo();
+                    cout << "Selected hero: "<< heroes[heroIndex]->getName() 
+                    << endl << endl;
 
-                system("clear");
-                printLogo();
-                
-                Item *itemToBuy;
+                    cout << "\n1. Sell an item"
+                        << "\n2. Sell a spell"
+                        << "\n\n0. Go back"; 
 
-                cout << "Selected hero: "<< heroes[heroIndex]->getName() 
-                << endl << endl;
+                    while(inputHandler(select, 0, 2) == false);
+                    
+                    if(select == 0)break;
 
-                itemToBuy = hero->sell();
-
-                if(itemToBuy != nullptr){
-                    hero->receiveMoney(buy(itemToBuy));
+                    if(select == 1){
+                        Item *product;
+                        system("clear");
+                        hero->sell(product);
+                        hero->receiveMoney(buy(product));
+                    }
+                    else{
+                        Spell *product;
+                        system("clear");
+                        hero->sell(product);
+                        hero->receiveMoney(buy(product));
+                    }
+                    pressEnterToContinue();
                 }
                 pressEnterToContinue();
             }
@@ -765,17 +777,16 @@ int Market::selectProduct(int type){
   return select-1;
 } 
 
+template<typename T>
+int Market::buy(T product){
 
-int Market::buy(Item *item){
+  if(product == nullptr)return -1;
 
-  if(item == nullptr)return -1;
+  int money = (product->getPrice() / 2);
 
-  int money = (item->getPrice() / 2);
-
-  cout << item->getName() << " successfully sold!!" << endl;
+  cout << product->getName() << " successfully sold!!" << endl;
 
   return money;
-  
 }
 
 
@@ -810,21 +821,18 @@ Spell* Market::sell(int id, int &money, int heroLvl){
   return spell;
 
 }
+
 /****************************************************************************/
 
 
 /* Block common implementation */
+
 Common::Common(void){
     combat = nullptr;
 }
 
 
 Common::~Common(void){
-
-    for(int i = 0; i < (int)itemsDropped.size(); i++)
-        delete itemsDropped[i];
-
-    itemsDropped.clear();
 }
 
 
@@ -843,11 +851,13 @@ void Common::interactWith(Hero **heroes, int heroesNum){
     delete combat;
 }
 
+/****************************************************************************/
+
 
 vector<string> Combat::monsterNames[3];
 
 int Combat::monsterKilled, Combat::goldGained,
-Combat::itemsGained,Combat::xpGained,Combat::heroesRevives;
+Combat::xpGained,Combat::heroesRevives;
 
 bool Combat::isStaticInit = false;
 
@@ -1132,7 +1142,7 @@ void Combat::heroesTurn(void){
                         cout << "\nMonter:";
 
                         while(inputHandler(monsterIndex, 1, monstersNum) == false);
-                        if(monsterIndex==0)break;
+
                         monsterIndex -= 1;
 
                         if(monsters[monsterIndex]->getHp() == 0){
@@ -1346,7 +1356,6 @@ void Combat::print(int heroSelect, int monsterSelect, bool heroTurn){
 
 void Combat::receiveRewards(void){
 
-  Item *item;
     system("clear");
     cout
     << "===============================================================" 
@@ -1354,17 +1363,14 @@ void Combat::receiveRewards(void){
     << "==============================================================="
     << endl << endl;
 
-  for(int i = 0; i < this->heroesNum; i++){
+    for(int i = 0; i < this->heroesNum; i++){
 
-    heroes[i]->receiveExperience(gainExp(heroes[i]->getLevel()));
+        heroes[i]->receiveExperience(gainExp(heroes[i]->getLevel()));
 
-    heroes[i]->pickUp(gainMoney(heroes[i]->getLevel()));
+        heroes[i]->pickUp(gainMoney(heroes[i]->getLevel()));
 
-    if((item = gainItem())!= nullptr){
-      heroes[i]->pickUp(item);
+        cout << "------------------------------------------\n";
     }
-    cout << "------------------------------------------\n";
-  }
 }
 
 
@@ -1381,21 +1387,6 @@ int Combat::gainMoney(int heroLvl)
     return result;
 }
 
-
-Item* Combat::gainItem(){
-
-    Item *item = nullptr;
-
-    if(rand() % 50 == 1){
-        item = new Weapon("Power Sword", 220, 300, 1, Weapon::oneHanded);
-        itemsGained++;
-    }
-
-
-        
-    return item;
-
-}
 
 
 int Combat::gainExp(int heroLvl)
@@ -1434,6 +1425,7 @@ void Combat::statistics(void){
     << "\nHeroes revived: " << heroesRevives
     << "\nXp gained: " << xpGained
     << "\nGold picked up: " << goldGained
-    << "\nItems picked up: " << itemsGained
     << endl;
 }
+
+/****************************************************************************/

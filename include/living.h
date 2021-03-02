@@ -61,28 +61,23 @@ class Living{
 
 /* Heroes and their classes */
 class Hero : public Living{
-    static const int additionalHp = 100;
-
-    static const int startingExperience = 0;
-    
-    static const int startingMoney = 100;
-
-    static const int maxLevel = 10;
-
-    static const int maxExperience = 100; 
-
-    static const int startingMp = 500;
-
-    static const int statsPerLevel = 2;
-
-    static constexpr double regenRate = 0.05;
-    
-    static const int hpPerLevel = 100;
-
-    static const int mpPerLevel = 50;
-
 
     private: 
+        static const int startingMp = 500;
+        static const int startingExperience = 0;
+        static const int startingMoney = 100;
+
+        static const int additionalHp = 100;
+
+        static const int maxLevel = 10;
+        static const int maxExperience = 100; 
+
+        static constexpr double regenRate = 0.05;
+        
+        static const int statsPerLevel = 2;
+        static const int hpPerLevel = 100;
+        static const int mpPerLevel = 50;
+
         struct Stats 
         {
             int str; //Strength, adds damage in attacks
@@ -99,37 +94,38 @@ class Hero : public Living{
         Weapon *starterWeapon;
         Armor *starterArmor;
 
+        static const int maxSpells = 10;
+        SpellBook *spellBook;
+
         Inventory *inventory;
 
         enum stats{strength, dexterity, agility};
 
         static const std::string statsTypeMsg[3];
-
-        std::vector<Spell*> spells;
         
         static const int maxBuffs = 10;
         int buffCounter;
         struct Buff *buffs[maxBuffs];
 
 
-
         /* Combat  */
         bool usePotion(Potion *potion);
-
+        //Improve stats per level
         void levelUp(void);
-
+        //Adds regenRate * maxHp to hp
         void regeneration(void) override;
-
+        //When hp == 0 hero will lose all active buffs
         void goUnconscious(void);
 
         void addBuff(struct Buff* buff);
 
         int findBuff(Buff *buff);
 
+
         //Equip weapon and armor
         bool equip(Item *item);
 
-        int inventoryAdd(Item *item);
+        bool inventoryAdd(Item *item);
 
 
 
@@ -139,7 +135,6 @@ class Hero : public Living{
 
 
 
-        /* Get data info */
         inline int getMoney(void){ return this->inventory->getMoney(); }
 
 
@@ -171,7 +166,14 @@ class Hero : public Living{
         inline void subMp(int points) //mp shouldn't be less than 0
         { this->mp = ((this->mp  - points) < 0)? 0 : (this->mp  - points); }
 
+        inline int getInventorySize(void) const
+        {return this->inventory->getSize();}
+
     protected:
+        static const int startingStr = 10;
+        static const int startingDex = 10;
+        static const int startingAgi = 10;
+
         /* Data modifiers */
         inline void addStats(int str, int dex, int agi){ 
           this->current.str += str; 
@@ -207,10 +209,6 @@ class Hero : public Living{
         inline int getMaxMp(void) const { return this->maxMp; } 
 
     public:
-        static const int startingStr = 10;
-        static const int startingDex = 10;
-        static const int startingAgi = 10;
-
         /* Constructor - Destructor */
         Hero(std::string name);
         virtual ~Hero();
@@ -220,74 +218,108 @@ class Hero : public Living{
         int attack(Living *living) const override;
 
         int receiveDamage(int damage);
-        /* Returns spell id, or -1 if no spells learned yet */
+
+        //Returns spell id, or -1 if no spells learned yet
         int selectSpell(void) const;
 
+        //If target couldn't avoid spell, he will receive 
+        //a damage and a debuff that will reduce his stats.
         bool castSpell(int spellId, Living *living);
 
+        //For every experience = maxExperience, hero gains level
         void receiveExperience(int exp);
-      
-        void pickUp(Item *item);
+
 
         void pickUp(int money);
-
+        //Same with pickUp money with diffrent print msg
         void receiveMoney(int money);
-        //Descrease round of active buffs
+
+        //Decrease buff duration, regenerates hp/mp
         void roundPass(void) override;
 
+        //Restore 50% of an unconscious hero's hp.
+        //With get penalty on, hero will lost -50% money.
         void revive(bool getPenalty = true);
 
 
-
-        //Returns true if an item equipped / or potions drinked
-        bool checkInventory(bool equip = false, bool drinkPotion = false);
-
+        //Displays all items equipped and unused. 
+        //Can equip weapon/armor or use a potion with the proper arg
+        //Returns true if an item equipped / or a potion is used
+        bool checkInventory(bool equip = false, bool usePotion = false);
+        
+        //Additionally displays active buffs and learned spells
         virtual void displayStats(void) const = 0;
         
-        inline int getInventorySize(void) const{return this->inventory->getSize();}
-
 
         /* Trade */
+        //In order to complete a purchase hero should have the required
+        //money and level.
         void buy(Item *item);
-
+        //If purchase was successfull, hero will automaticaly
+        //learn the spell.
         void buy(Spell *spell);
+        
+        void sell(Spell *&spell);
 
-        Item *sell(int inventorySlot);
+        void sell(Item *&item);
 
         bool learnSpell(Spell *spell);
-    
 };
 
 
 
 class Warrior : public Hero{
-    
-    public:
+    private:
         static const int additionalStr = 5;
         static const int additionalAgi = 5;
+
+    public:
+        /* Constructor - Destructor */
         Warrior(std::string name);
         ~Warrior();
+
         void displayStats(void)  const override;
+
+        static int getStrength(void){return (additionalStr + startingStr);}
+        static int getDexterity(void){return startingDex;}
+        static int getAgility(void){return (additionalAgi + startingAgi);}
 };
+
 
 class Sorcerer : public Hero{
 
-    public:
+    private:
         static const int additionalDex = 5;
         static const int additionalAgi = 5;
-        Sorcerer(std::string name);
-        ~Sorcerer();
-        void displayStats(void) const override;
-};
-
-class Paladin : public Hero{
 
     public:
+        /* Constructor - Destructor */
+        Sorcerer(std::string name);
+        ~Sorcerer();
+
+        void displayStats(void) const override;
+
+        static int getStrength(void){return startingStr;}
+        static int getDexterity(void){return (additionalDex + startingDex);}
+        static int getAgility(void){return (additionalAgi + startingAgi);}
+};
+
+
+class Paladin : public Hero{
+    private:
         static const int additionalStr = 5;
         static const int additionalDex = 5;
+
+    public:
+        /* Constructor - Destructor */
         Paladin(std::string name);
         ~Paladin();
+
         void displayStats(void) const override;
+
+        static int getStrength(void){return (additionalStr + startingStr);}
+        static int getDexterity(void){return (additionalDex + startingDex);}
+        static int getAgility(void){return startingAgi;}
 };
 
 
@@ -297,8 +329,10 @@ class Monster : public Living{
     private:
         static const int startingDef = 10;
         static const int startingDodge = 10;
+        
         static const int startingDmg = 50;
         static const int damageRange = 50;
+        
         static const int statsPerLevel = 2;
         static const int hpPerLevel = 100;
         static const int damagePerLevel = 30;
@@ -323,7 +357,8 @@ class Monster : public Living{
         int findDeBuff(Buff *deBuff);
 
         void removeDeBuff(int deBuffSlot);
-
+        
+        //When hp == 0 monster will lose all active debuffs
         void goUnconscious(void);
 
         static constexpr double regenRate = 0.03;
@@ -332,6 +367,7 @@ class Monster : public Living{
         static const int maxDeBuffs = 10;
         int deBuffCounter;
         struct Buff *deBuffs[maxDeBuffs];
+
     protected:
 
         void printDeBuffs(void) const;
@@ -380,6 +416,7 @@ class Monster : public Living{
         inline int getDef(void) const{return current.defence;}
 
         inline int getDodge(void) const{return current.dodge;}
+
     public:
 
         /* Constructor - Destructor */
@@ -389,7 +426,7 @@ class Monster : public Living{
 
 
         virtual void displayStats(void) const = 0;
-
+        /* Returns the id of the selected hero */
         int selectTarget(Hero **heroes, int num);   
 
         int attack(Living *living) const override;
@@ -398,15 +435,15 @@ class Monster : public Living{
 
         void receiveDeBuff(struct Buff*);
 
-        /* Descrease round of active buffs */
+        /* Decrease debuff duration, regenerates hp/mp */
         void roundPass(void) override;
 
 };
 
 class Dragon : public Monster{
-
-    public:
         static const int additionalDmg = 20;
+        
+    public:
 
         Dragon(std::string name, int additionalLevel);
         ~Dragon();
@@ -415,9 +452,9 @@ class Dragon : public Monster{
 };
 
 class Exoskeleton : public Monster{
+        static const int additionalDef = 5;
 
     public:
-        static const int additionalDef = 5;
 
         Exoskeleton(std::string name, int additionalLevel);
         ~Exoskeleton();
@@ -426,9 +463,9 @@ class Exoskeleton : public Monster{
 };
 
 class Spirit : public Monster{
+        static const int additionalDodge = 5;
 
     public:
-        static const int additionalDodge = 5;
 
         Spirit(std::string name, int additionalLevel);
         ~Spirit();

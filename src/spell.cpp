@@ -129,3 +129,69 @@ Buff* LightingSpell::cast(int dexterity, int &damage){
     return new Buff(deBuffNames[statAffect::dodge],\
     getRounds(), getStat(), getPoints());  
 }
+
+
+
+void SpellBook::checkSpells(void){
+    if(spells.size() > 0){
+        cout << "*_Spellbook_* " << endl << endl;
+        for(int i = 0; i < (int)spells.size(); i++){
+            cout << "_"<< i+1 << "_ " << endl
+                 << spells[i]->getName() << endl;
+        }
+    }
+    else cout << "Spellbook is empty!" << endl;
+}
+
+
+bool SpellBook::findSpell(Spell *spell){
+    for(int i = 0; i < (int)spells.size(); i++){
+        if(spell == spells[i])return true;
+    }
+    return false;
+}   
+
+
+bool SpellBook::addSpell(Spell *spell){
+
+    if(spell == nullptr){
+        cout << "Inventory add failed!Item doesn't exists!\n";
+        return false;
+    }
+    if(findSpell(spell) == true){
+        cout << spell->getName()
+             << " allready added in spellbook!!" << endl; 
+        return false;
+    }
+    if((int)spells.size() == maxSpells){
+        cout << "Spellbook is full!\n";
+        return false;
+    }
+
+    spells.push_back(spell);
+
+    return true;
+}
+
+
+Spell* SpellBook::popSpell(int id){
+
+    if(id >= (int)spells.size() || id < 0)
+        return nullptr;
+    
+    Spell* spell = spells[id];
+
+    spells.erase(spells.begin() + id);
+    cout << spell->getName() <<" removed from spellbook!\n";
+    
+    return spell;
+}
+
+
+Spell* SpellBook::getSpell(int id){
+
+    if(id >= (int)spells.size() || id < 0)
+        return nullptr;
+    
+    return spells[id];
+}

@@ -166,8 +166,9 @@ class Market : public Block{
         void showItems(int type);
         /* Returns -1 if no product selected */
         int selectProduct(int type); 
-        /* Market buying hero items */
-        int buy(Item *item);
+        /* Market buying hero items/spells */
+        template<typename T>
+        int buy(T product);
         /* Market selling to hero items */
         Item* sell(int type, int id, int &money, int heroLvl);
         /* Market selling to hero spells */
@@ -195,13 +196,7 @@ class Common : public Block{
     private:
         class Combat *combat;
 
-        std::vector <Item*> itemsDropped;
-
         inline bool isPeacefull(void){return rand()%3 != 0;}
-
-    protected:
-
-        void addItem(Item *item){itemsDropped.push_back(item);}
 
     public:
 
@@ -234,7 +229,7 @@ class Combat : public Common{
         static bool isStaticInit;
 
         /*Statistics */
-        static int monsterKilled, goldGained, itemsGained, xpGained, heroesRevives;
+        static int monsterKilled, goldGained, xpGained, heroesRevives;
 
     
         enum monsterTypes{dragon, exoskeleton, spirit};

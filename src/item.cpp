@@ -17,6 +17,7 @@ Item::~Item (){}
 
 
 /* Subclass *Potion* implementation */
+
 const string Potion::statTypeMsg[3] = {"strength", "dexterity", "agility"};
 
 Potion::Potion(string name, int stat, \
@@ -27,6 +28,7 @@ Item(name, price, requiredLevel)
     this->points = points;
     this->rounds = (requiredLevel/2) + buffRounds;
 }
+
 
 Potion::~Potion(){}
 
@@ -100,7 +102,8 @@ void Armor::print()const {
 
 /* Inventory implementation */
 
-Inventory::Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money)
+Inventory::Inventory(Weapon *weaponToequip, Armor *armorToEquip,
+int money, int size)
 {   
     this->weapon = nullptr;
     this->handSlot[0] = this->handSlot[1] = nullptr;
@@ -108,6 +111,7 @@ Inventory::Inventory(Weapon *weaponToequip, Armor *armorToEquip, int money)
     equipWeapon(weaponToequip);
     equipArmor(armorToEquip);
     this->money = money;
+    this->maxItems = size;
 }
 
 
@@ -164,12 +168,14 @@ bool Inventory::equipArmor(Armor *armor){
 
 Item* Inventory::popItem(int inventorySlot){
     
-    if((long unsigned int)inventorySlot >= items.size())
+    if(inventorySlot >= (int)items.size())
         return nullptr;
 
     Item* item = items[inventorySlot];
 
     items.erase(items.begin() + inventorySlot);
+
+    cout << item->getName() << " removed from inventory!\n";
 
     return item;
 

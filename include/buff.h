@@ -8,6 +8,7 @@ struct Buff{
         int roundCounter;
         int stat;
         int points;
+        
     public:
         Buff(std::string name_, int rounds, int stat_, int points_): 
         name(name_), roundCounter(rounds), stat(stat_), points(points_){}
