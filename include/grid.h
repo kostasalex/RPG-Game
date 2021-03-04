@@ -100,17 +100,14 @@ class Block{
         
         virtual ~Block() = 0;
 
-        virtual bool access(void) = 0;
+        virtual bool access(Hero **heroes, int heroesNum) = 0;
 
         inline void leave(void){
             heroes = nullptr;
             heroesNum = 0;
         }
 
-        virtual void interactWith(Hero **heroes, int heroesNum) = 0;
-        
-        virtual std::string display(void) = 0;
-        
+        virtual void interactWith(void) = 0;    
 
 };
 
@@ -122,12 +119,10 @@ class NonAccessive : public Block{
         NonAccessive(){}
         ~NonAccessive(){}
 
-        bool access(void)override 
+        bool access(Hero **heroes, int heroesNum) override 
         {return false;}
 
-        void interactWith(Hero **heroes, int heroesNum)override {return;}
-        
-        std::string display(void)override {return "";}
+        void interactWith(void)override {return;}
 
 };
 
@@ -175,18 +170,15 @@ class Market : public Block{
         Spell* sell(int id, int &money, int heroLvl);
 
         void printLogo(void) const;
+
     public:
     
         Market();
         ~Market();
 
-        bool access(void)override
-        {
-            return true;
-        }
-        void interactWith(Hero **heroes, int heroesNum)override;
+        bool access(Hero **heroes, int heroesNum)override;
 
-        std::string display(void){return "test";}
+        void interactWith(void)override;
 
 };
 
@@ -203,24 +195,21 @@ class Common : public Block{
         Common();
         ~Common();
 
-        bool access(void)override
-        {
-            return true;
-        }
+        bool access(Hero **heroes, int heroesNum);
         
-        void interactWith(Hero **heroes, int heroesNum);
-
-        std::string display(void)override {return "test";
-        }
+        void interactWith(void);
 
 };
 
 
-class Combat : public Common{
+class Combat{
 
     private:
         int monstersNum, round;
         Monster **monsters;
+
+        int heroesNum;
+        Hero **heroes;
 
         const int xpRate = 40;
 
@@ -264,11 +253,6 @@ class Combat : public Common{
     public:
         Combat(Hero **heroes, int heroesNum);
         ~Combat();
-
-        bool access(void)
-        {
-            return true;
-        }
         
         /* Combat ends when all heroes or all monster die */
         void start(void);

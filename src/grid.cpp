@@ -218,8 +218,8 @@ void Grid::play(void){
                 system("clear");
                 if(move() == true){
                     if(blocks[heroesLoc.x][heroesLoc.y]->\
-                    access()){
-                        blocks[heroesLoc.x][heroesLoc.y]->interactWith(heroes, heroesNum);
+                    access(heroes, heroesNum)){
+                        blocks[heroesLoc.x][heroesLoc.y]->interactWith();
                         blocks[heroesLoc.x][heroesLoc.y]->leave();            
                     }
                 }
@@ -330,7 +330,7 @@ bool Grid::move(void){
 
         /* Check if new block is accessible */ 
         if(inGrid == true){  //If yes change heroes location
-            if(blocks[x][y]->access() == true){
+            if(blocks[x][y]->access(heroes, heroesNum) == true){
                 heroesLoc.setLoc(x,y);
                 return true;
             }
@@ -338,7 +338,6 @@ bool Grid::move(void){
         cout << "Oops couldn't move there.." << endl;
         pressEnterToContinue();
     }//End of while(1)
-
 
     return false;
 }
@@ -387,14 +386,11 @@ void Grid::printLogo(void)
 Block::~Block(){}
 
 
-
 /* Block Market implementation */
 string Market::productType[4] = {"weapon", "armor", "spell", "potion"};
 
 Market::Market(){
    
-
-    
     this->name = "Default Market";
 
     string name, nameA, nameB, temp;
@@ -520,7 +516,6 @@ Market::Market(){
     myFile.close();
 
     cout << "A new market " << this->name << " Constructed!" << endl;
-
 }
 
 
@@ -538,6 +533,7 @@ Market::~Market(){
 }
 
 
+
 void Market::printLogo(void) const
 {
     for(int i = 0; i < logoSize; i++)
@@ -545,9 +541,14 @@ void Market::printLogo(void) const
 }
 
 
-void Market::interactWith(Hero **heroes, int heroesNum){
-    
+bool Market::access(Hero **heroes, int heroesNum)
+{
     addHeroes(heroes, heroesNum);
+    return true;
+}
+
+
+void Market::interactWith(void){
 
     if(heroes == nullptr){
         cout << "There is no heroes in Market block\n";
@@ -836,7 +837,13 @@ Common::~Common(void){
 }
 
 
-void Common::interactWith(Hero **heroes, int heroesNum){
+bool Common::access(Hero **heroes, int heroesNum){
+    addHeroes(heroes, heroesNum);
+    return true;
+}
+
+
+void Common::interactWith(void){
 
     if(heroes == nullptr){
         cout << "There is no heroes in Common block\n";
@@ -853,6 +860,8 @@ void Common::interactWith(Hero **heroes, int heroesNum){
 
 /****************************************************************************/
 
+
+/* Block Combat implementation */
 
 vector<string> Combat::monsterNames[3];
 
@@ -912,7 +921,8 @@ Combat::Combat(Hero **heroes,int heroesNum){
     system("clear");
     cout << "You have entered a dangerous zone ..\n\n";
 
-    addHeroes(heroes, heroesNum);
+    this->heroes = heroes;
+    this->heroesNum = heroesNum;
 
     if(isStaticInit == false){
         initStatics();
@@ -1012,8 +1022,6 @@ void Combat::start(void){
 
         pressEnterToContinue(false);
 }
-
-
 
 
 
@@ -1386,7 +1394,6 @@ int Combat::gainMoney(int heroLvl)
     
     return result;
 }
-
 
 
 int Combat::gainExp(int heroLvl)

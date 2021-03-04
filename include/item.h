@@ -6,7 +6,7 @@
 #include <vector>
 
 
-/* Base class for all item int game: 
+/* Base class for all item in game: 
    Potions, armors, weapons and spells*/
 
 class Item{
@@ -78,7 +78,6 @@ class Potion : public Item{
 class Weapon : public Item{
 
     private:
-        std::string stat; //Stat that will be affected
         int damage;
         int handsRequired;  //One-handed:1 , Two-handed:2
 

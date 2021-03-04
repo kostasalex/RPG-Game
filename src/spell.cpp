@@ -131,7 +131,6 @@ Buff* LightingSpell::cast(int dexterity, int &damage){
 }
 
 
-
 void SpellBook::checkSpells(void){
     if(spells.size() > 0){
         cout << "*_Spellbook_* " << endl << endl;
