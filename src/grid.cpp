@@ -92,7 +92,7 @@ Grid::Grid(){
         printLogo();
 
         cout << "\nSelect a class :" << endl << endl;
-        cout << "1. Warrior     || A warrior class has additional strength and agility"
+        cout << "1. Warrior     || A Warrior class has additional strength and agility"
             << endl 
             << "               || Strength : " 
             << Warrior::getStrength() << endl
