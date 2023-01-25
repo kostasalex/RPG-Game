@@ -58,9 +58,10 @@ Select a class :
 Where do you want to go? [w] = up, [s] = down, [a] = left, [d] = right
 Or 'b' to go back
 Direction: 
-
+```
 
 ### Combat 
+```
 ===============================================================
 
                   ***    Round 1   ***
